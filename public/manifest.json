@@ -1,0 +1,35 @@
+{
+    "name": "dope-test",
+    "short_name": "dope-test",
+    "description": "dope-test",
+    "orientation": "portrait",
+    "start_url": "/",
+    "display": "standalone",
+    "theme_color": "lightgray",
+    "background_color": "lightgray",
+    "icons": [
+      {
+        "src": "/images/icon.png",
+        "sizes": "120x120",
+        "type": "image/png"
+      },
+      {
+        "src": "/images/icon-144.png",
+        "sizes": "144x144",
+        "type": "image/png"
+      },
+      {
+        "src": "/images/icon-512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ],
+    "screenshots": [
+      {
+        "src":"/images/splash.jpg",
+        "sizes":"768x1408",
+        "type":"image/png",
+        "description":"홈 화면"
+      }
+    ]
+}

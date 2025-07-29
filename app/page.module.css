@@ -1,167 +1,184 @@
-.page {
-  --gray-rgb: 0, 0, 0;
-  --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
-  --gray-alpha-100: rgba(var(--gray-rgb), 0.05);
-
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-
-  display: grid;
-  grid-template-rows: 20px 1fr 20px;
-  align-items: center;
-  justify-items: center;
-  min-height: 100svh;
-  padding: 80px;
-  gap: 64px;
-  font-family: var(--font-geist-sans);
-}
-
-@media (prefers-color-scheme: dark) {
-  .page {
-    --gray-rgb: 255, 255, 255;
-    --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
-    --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
-
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-  }
-}
-
-.main {
+.mainContent { /* 기존 .main 대신 새로운 메인 화면용 클래스 */
   display: flex;
   flex-direction: column;
   gap: 32px;
-  grid-row-start: 2;
+  align-items: center; /* 중앙 정렬 추가 */
+  justify-content: center; /* 중앙 정렬 추가 */
+  height: 100vh; /* 화면 전체 높이 사용 */
+  width: 100vw; /* 화면 전체 너비 사용 */
+  box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+  padding: 1rem; /* 내용이 잘 보이도록 패딩 추가 */
 }
 
-.main ol {
-  font-family: var(--font-geist-mono);
-  padding-left: 0;
-  margin: 0;
-  font-size: 14px;
-  line-height: 24px;
-  letter-spacing: -0.01em;
-  list-style-position: inside;
-}
-
-.main li:not(:last-of-type) {
-  margin-bottom: 8px;
-}
-
-.main code {
-  font-family: inherit;
-  background: var(--gray-alpha-100);
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.ctas {
+.card {
   display: flex;
-  gap: 16px;
-}
-
-.ctas a {
-  appearance: none;
-  border-radius: 128px;
-  height: 48px;
-  padding: 0 20px;
-  border: 1px solid transparent;
-  transition:
-    background 0.2s,
-    color 0.2s,
-    border-color 0.2s;
-  cursor: pointer;
-  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  line-height: 20px;
-  font-weight: 500;
+  justify-content: space-between;
+  height: 90%;
+  width: 100%; /* 모바일에서 너비 100% 사용 */
+  background-color: #ffffff; /* bg-white */
+  border-radius: 0.5rem; /* rounded-lg */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+  padding: 2rem; /* p-8 */
+  max-width: 24rem; /* max-w-sm (데스크탑/태블릿용) */
+  text-align: center;
+  box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
 }
 
-a.primary {
-  background: var(--foreground);
-  color: var(--background);
-  gap: 8px;
-}
-
-a.secondary {
-  border-color: var(--gray-alpha-200);
-  min-width: 158px;
-}
-
-.footer {
-  grid-row-start: 3;
-  display: flex;
-  gap: 24px;
-}
-
-.footer a {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.footer img {
-  flex-shrink: 0;
-}
-
-/* Enable hover only on non-touch devices */
-@media (hover: hover) and (pointer: fine) {
-  a.primary:hover {
-    background: var(--button-primary-hover);
-    border-color: transparent;
-  }
-
-  a.secondary:hover {
-    background: var(--button-secondary-hover);
-    border-color: transparent;
-  }
-
-  .footer a:hover {
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-}
-
+/* 모바일 최적화: 작은 화면에서는 card의 max-width를 해제하고 패딩 조정 */
 @media (max-width: 600px) {
-  .page {
-    padding: 32px;
-    padding-bottom: 80px;
+  .screenContainer {
+    padding: 0.5rem; /* 모바일에서 패딩 줄이기 */
   }
 
-  .main {
-    align-items: center;
-  }
-
-  .main ol {
-    text-align: center;
-  }
-
-  .ctas {
-    flex-direction: column;
-  }
-
-  .ctas a {
-    font-size: 14px;
-    height: 40px;
-    padding: 0 16px;
-  }
-
-  a.secondary {
-    min-width: auto;
-  }
-
-  .footer {
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
+  .card {
+    max-width: 100%; /* 모바일에서 max-width 해제 */
+    padding: 1.5rem 1rem; /* 모바일에서 패딩 조정 */
+    border-radius: 0; /* 모바일에서 모서리 둥글기 제거 (선택 사항) */
+    height: 100vh; /* 모바일에서 화면 높이 꽉 채우기 */
+    box-shadow: none; /* 모바일에서 그림자 제거 (선택 사항) */
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
+
+.logo {
+  filter: none; /* 다크 모드 필터 제거 (Next.js 로고에만 적용되었던 것) */
+}
+
+.title {
+  font-size: 2.25rem; /* text-4xl */
+  font-weight: 700; /* font-bold */
+  margin-top: 1rem; /* mt-4 */
+  color: #1f2937; /* text-gray-800 */
+}
+
+/* 모바일 최적화: 타이틀 폰트 크기 조정 */
+@media (max-width: 600px) {
+  .title {
+    font-size: 1.75rem; /* 모바일에서 폰트 크기 줄이기 */
+  }
+}
+
+.description {
+  color: #4b5563; /* text-gray-600 */
+  margin-top: 1rem; /* mt-4 */
+  font-size: 1.125rem; /* text-lg */
+  line-height: 1.625; /* leading-relaxed */
+}
+
+/* 모바일 최적화: 설명 폰트 크기 조정 */
+@media (max-width: 600px) {
+  .description {
+    font-size: 1rem; /* 모바일에서 폰트 크기 줄이기 */
+  }
+}
+
+.button {
+  margin-top: 3rem; /* mt-12 */
+  border: none; /* Remove default button border */
+  position: relative;
+  bottom: 0;
+  padding: 0.75rem 2rem; /* px-8 py-3 */
+  background-color: #cecece;
+  color: #000000;
+  border-radius: 9999px; /* rounded-full */
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600; /* font-semibold */
+  transition-property: background-color; /* transition duration-300 */
+  transition-duration: 300ms;
+  cursor: pointer;
+  width: 100%; /* 모바일에서 버튼 너비 100% */
+  max-width: 200px; /* 버튼 최대 너비 설정 */
+}
+
+/* 메인 화면 텍스트 스타일 */
+.mainTitle {
+  font-size: 2.25rem; /* text-4xl */
+  font-weight: 700; /* font-bold */
+  color: #1f2937; /* text-gray-800 */
+}
+
+/* 모바일 최적화: 메인 타이틀 폰트 크기 조정 */
+@media (max-width: 600px) {
+  .mainTitle {
+    font-size: 1.75rem;
+  }
+}
+
+.mainDescription {
+  color: #4b5563; /* text-gray-600 */
+  margin-top: 1rem; /* mt-4 */
+}
+
+/* 메인 화면 레이아웃을 위한 새로운 스타일 */
+.mainScreenContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* 로고와 버튼을 위아래로 분리 */
+  align-items: center;
+  height: 100vh; /* 뷰포트 높이 꽉 채움 */
+  width: 100vw; /* 뷰포트 너비 꽉 채움 */
+  background-color: #ffffff; /* 배경색 */
+  padding: 2rem 1rem; /* 상하 패딩 추가 */
+  box-sizing: border-box;
+}
+
+.mainScreenLogoTop {
+  font-size: 2.5rem; /* 로고 폰트 크기 */
+  font-weight: 700; /* 굵게 */
+  color: #1f2937; /* 로고 색상 */
+  margin-top: 2rem; /* 상단 여백 */
+}
+
+.mainButtonsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* 버튼 간격 */
+  width: 100%; /* 버튼 컨테이너 너비 */
+  max-width: 300px; /* 버튼 컨테이너 최대 너비 */
+  padding: 0 1rem; /* 좌우 패딩 */
+  box-sizing: border-box;
+}
+
+.mainButton {
+  padding: 1rem 1.5rem; /* 버튼 패딩 */
+  background-color: #ffffff; /* 버튼 배경색 */
+  color: #1f2937; /* 버튼 텍스트 색상 */
+  border: 1px solid #d1d5db; /* 버튼 테두리 */
+  border-radius: 0.5rem; /* 버튼 모서리 둥글기 */
+  font-size: 1.125rem; /* 버튼 폰트 크기 */
+  font-weight: 500; /* 버튼 폰트 굵기 */
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* 그림자 효과 */
+}
+
+.mainButton:hover {
+  background-color: #f9fafb; /* 호버 시 배경색 */
+  border-color: #9ca3af; /* 호버 시 테두리 색상 */
+}
+
+.mainScreenLogoBottom {
+  font-size: 2.5rem; /* 로고 폰트 크기 */
+  font-weight: 700; /* 굵게 */
+  color: #1f2937; /* 로고 색상 */
+  margin-bottom: 2rem; /* 하단 여백 */
+}
+
+/* 모바일 최적화: 메인 화면 요소 크기 조정 */
+@media (max-width: 600px) {
+  .mainScreenLogoTop,
+  .mainScreenLogoBottom {
+    font-size: 2rem; /* 모바일에서 로고 폰트 크기 줄이기 */
+  }
+
+  .mainButtonsContainer {
+    max-width: 280px; /* 모바일에서 버튼 컨테이너 최대 너비 조정 */
+  }
+
+  .mainButton {
+    font-size: 1rem; /* 모바일에서 버튼 폰트 크기 줄이기 */
+    padding: 0.8rem 1.2rem; /* 모바일에서 버튼 패딩 조정 */
   }
 }

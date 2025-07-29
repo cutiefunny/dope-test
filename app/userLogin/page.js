@@ -242,9 +242,16 @@ export default function UserLoginPage() {
                 className={styles.selectField}
               >
                 <option value="">지역을 선택하세요</option>
-                <option value="seoul">서울</option>
-                <option value="busan">부산</option>
-                <option value="daegu">대구</option>
+                <option value="서울">서울</option>
+                <option value="경기">경기</option>
+                <option value="충북">충북</option>
+                <option value="충남">충남</option>
+                <option value="강원">강원</option>
+                <option value="전북">전북</option>
+                <option value="전남">전남</option>
+                <option value="경북">경북</option>
+                <option value="경남">경남</option>
+                <option value="제주">제주</option>
               </select>
             </div>
           </div>
@@ -258,7 +265,7 @@ export default function UserLoginPage() {
                 name="phoneNumber"
                 value={userInfo.phoneNumber}
                 onChange={handleUserInfoChange}
-                placeholder="010-1234-5678"
+                placeholder="01012345678"
                 className={styles.inputField}
               />
               <button

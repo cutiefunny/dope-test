@@ -90,7 +90,6 @@ export default function Home() {
             priority
             className={styles.logo}
           />
-          <h1 className={styles.title}>LOGO</h1>
           <p className={styles.description}>
             개인정보 처리 방침<br />모든 데이터는 보안을 위해 암호화되어 저장됩니다.
           </p>

@@ -143,6 +143,17 @@
   box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
 }
 
+.inputFieldWrong {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ef4444;;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  color: #1f2937;
+  background-color: #ffffff;
+  box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+}
+
 .inputField::placeholder {
   color: #9ca3af;
 }
@@ -241,6 +252,22 @@
 .verificationConfirmButton:hover {
   background-color: gray;
 }
+
+/* [추가] 인증 메시지 스타일 */
+.successMessage {
+  color: #0088FF; /* 성공 메시지 색상 (파란색) */
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  text-align: left;
+}
+
+.errorMessage {
+  color: #FF3434; /* 에러 메시지 색상 (빨간색) */
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  text-align: left;
+}
+
 
 /* 하단 버튼 */
 .bottomButton {

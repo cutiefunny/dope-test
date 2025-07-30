@@ -23,7 +23,10 @@ export default function UserLoginPage() {
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [isVerificationRequested, setIsVerificationRequested] = useState(false);
   const [verificationDone, setVerificationDone] = useState(false);
-  const [verificationAlert, setVerificationAlert] = useState(false);
+  // [수정] 인증 메시지 상태 추가
+  const [verificationMessage, setVerificationMessage] = useState('');
+  const [isVerificationSuccess, setIsVerificationSuccess] = useState(false);
+
   const [verificationTimer, setVerificationTimer] = useState(180); // 3분 타이머 (초 단위)
   const [timerIntervalId, setTimerIntervalId] = useState(null);
   const backIcon = () => (
@@ -67,6 +70,9 @@ export default function UserLoginPage() {
     setIsVerificationRequested(true);
     setVerificationTimer(180); // 타이머 초기화
     if (timerIntervalId) clearInterval(timerIntervalId); // 기존 타이머 클리어
+    // [수정] 인증 요청 시 메시지 초기화
+    setVerificationMessage('');
+    setIsVerificationSuccess(false);
 
     const id = setInterval(() => {
       setVerificationTimer((prev) => {
@@ -88,25 +94,31 @@ export default function UserLoginPage() {
     // 인증 성공 시 모달 표시
     if (userInfo.verificationCode === '123456') { // 예시: 실제로는 서버에서 확인
       clearInterval(timerIntervalId); // 타이머 중지
-      setShowVerificationModal(true);
+      // [수정] 성공 메시지 표시
+      setVerificationMessage('본인인증이 완료되었습니다.');
+      setIsVerificationSuccess(true);
+      setVerificationDone(true); // 인증 완료 상태로 변경
     } else {
-      alert('인증번호가 올바르지 않습니다.'); // 실제 앱에서는 커스텀 모달 사용 권장
+      // [수정] 실패 메시지 표시
+      setVerificationMessage('인증번호가 올바르지 않습니다.');
+      setIsVerificationSuccess(false);
+      setVerificationDone(false); // 인증 실패 시 완료 버튼 비활성화
     }
   };
 
-  // 인증 완료 모달 확인 버튼 클릭 핸들러
-  const handleModalConfirm = () => {
-    setShowVerificationModal(false);
-    setVerificationDone(true); // 인증 완료 상태로 변경
-    // 다음 단계로 이동하거나 (예: 회원가입 완료)
-    // 여기서는 일단 '완료' 버튼이 활성화되도록 상태를 유지
-  };
+  // 인증 완료 모달 확인 버튼 클릭 핸들러 (사용하지 않으므로 제거)
+  // const handleModalConfirm = () => {
+  //   setShowVerificationModal(false);
+  //   setVerificationDone(true); // 인증 완료 상태로 변경
+  //   // 다음 단계로 이동하거나 (예: 회원가입 완료)
+  //   // 여기서는 일단 '완료' 버튼이 활성화되도록 상태를 유지
+  // };
 
   // 완료 버튼 클릭 핸들러
   const handleComplete = () => {
     // 최종 회원가입 완료 로직
     console.log('회원인증 완료:', userInfo);
-    alert('회원인증이 완료되었습니다!'); // 실제 앱에서는 커스텀 모달 사용 권장
+    // [수정] alert 대신 페이지 이동
     router.push('/'); // 메인 화면으로 이동
   };
 
@@ -288,7 +300,7 @@ export default function UserLoginPage() {
                   value={userInfo.verificationCode}
                   onChange={handleUserInfoChange}
                   placeholder="인증번호를 입력해주세요"
-                  className={styles.inputField}
+                  className={`${styles.inputField} ${!isVerificationSuccess ? styles.inputFieldWrong : ''}`}
                 />
                 <span className={styles.timer}>{formatTime(verificationTimer)}</span>
                 <button
@@ -298,6 +310,12 @@ export default function UserLoginPage() {
                   확인
                 </button>
               </div>
+              {/* [추가] 인증 메시지 표시 */}
+              {verificationMessage && (
+                <p className={isVerificationSuccess ? styles.successMessage : styles.errorMessage}>
+                  {verificationMessage}
+                </p>
+              )}
             </div>
           )}
 
@@ -311,15 +329,15 @@ export default function UserLoginPage() {
         </div>
       )}
 
-      {/* 인증 완료 모달 */}
-      {showVerificationModal && (
+      {/* 인증 완료 모달 (사용하지 않으므로 제거) */}
+      {/* {showVerificationModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
             <p className={styles.modalMessage}>본인인증이 완료되었습니다!</p>
             <button onClick={handleModalConfirm} className={styles.modalButton}>확인</button>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

@@ -1,0 +1,117 @@
+/* 공통 버튼, 인풋, 모달, 글씨체 스타일 */
+
+/* 입력 필드 섹션 */
+.inputGroup {
+  margin-bottom: 1rem;
+}
+
+.inputLabel {
+  display: block;
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 500; /* font-medium */
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.inputField {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  color: #1f2937;
+  background-color: #ffffff;
+  box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+}
+
+.inputField::placeholder {
+  color: #9ca3af;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: gray;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* 하단 버튼 */
+.bottomButton {
+  width: calc(100% - 2rem); /* 좌우 패딩 고려 */
+  padding: 1rem 0;
+  background-color: gray;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  position: absolute; /* 하단 고정 */
+  bottom: 1.5rem; /* 하단 여백 */
+  left: 1rem; /* 좌측 여백 */
+  right: 1rem; /* 우측 여백 */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.bottomButton.disabledButton {
+  background-color: lightgray; /* 비활성화 시 회색 */
+  cursor: not-allowed;
+}
+
+/* 모달 스타일 */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* 최상단에 표시 */
+}
+
+.modalContent {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  max-width: 300px;
+  width: 90%;
+}
+
+.modalMessage {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.modalButton {
+  padding: 0.75rem 2rem;
+  background-color: gray;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modalButton:hover {
+  background-color: #1d4ed8;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #333;
+  cursor: pointer;
+  padding: 0 0.5rem;
+}

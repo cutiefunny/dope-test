@@ -1,0 +1,58 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100vw;
+  background-color: #f3f4f6; /* 배경색 */
+  box-sizing: border-box;
+  overflow: hidden; /* 스크롤 방지 */
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.headerTitle {
+  flex-grow: 1;
+  text-align: center;
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600; /* font-semibold */
+  color: #1f2937;
+  margin-right: 2rem; /* 뒤로가기 버튼 공간 확보 */
+}
+
+.contentArea {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  background-color: #f3f4f6;
+  position: relative; /* 버튼 위치 조정을 위해 */
+  justify-content: center;
+  margin-bottom: 5rem; /* 하단 버튼 공간 확보 */
+}
+
+.loadingContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-size: 1.2rem;
+    color: #4b5563;
+}
+/* 모바일 최적화 */
+@media (max-width: 600px) {
+  .headerTitle {
+    font-size: 1rem;
+  }
+
+  .contentArea {
+    padding: 1rem 0.75rem;
+  }
+}

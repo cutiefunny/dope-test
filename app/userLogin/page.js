@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import styles from './userLogin.module.css'; // CSS Modules 임포트
 import { useRouter } from 'next/navigation'; // Next.js 13+ App Router에서 useRouter 사용
 import { db, auth } from '../../lib/firebase/clientApp'; // Firebase 클라이언트 앱 임포트
-import { doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore'; // Firestore 함수 임포트
+import { doc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore'; // Firestore 함수 임포트
 import { signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth'; // Firebase Auth 함수 임포트
+import useSmsMessage from '../../hooks/useSmsMessage'; // SMS 발송 훅 임포트
 
 export default function UserLoginPage() {
   const [step, setStep] = useState(1); // 1: 약관 동의, 2: 회원 정보 입력, 3: 인증 완료 모달
@@ -23,11 +24,14 @@ export default function UserLoginPage() {
     phoneNumber: '',
     verificationCode: '',
   });
-  const [showVerificationModal, setShowVerificationModal] = useState(false); // 인증 완료 모달 표시 여부
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [isVerificationRequested, setIsVerificationRequested] = useState(false);
   const [verificationDone, setVerificationDone] = useState(false);
   const [verificationMessage, setVerificationMessage] = useState('');
   const [isVerificationSuccess, setIsVerificationSuccess] = useState(false);
+
+  // [수정] 실제 인증번호를 저장하기 위한 상태 추가
+  const [generatedVerificationCode, setGeneratedVerificationCode] = useState('');
 
   const [verificationTimer, setVerificationTimer] = useState(180); // 3분 타이머 (초 단위)
   const [timerIntervalId, setTimerIntervalId] = useState(null);
@@ -35,6 +39,7 @@ export default function UserLoginPage() {
   const [userId, setUserId] = useState(null); // Firestore 문서 ID로 사용할 userId
 
   const router = useRouter();
+  const { sendSmsMessage, loading: smsLoading, error: smsError } = useSmsMessage();
 
   // 뒤로가기 아이콘 컴포넌트
   const backIcon = () => (
@@ -54,32 +59,31 @@ export default function UserLoginPage() {
         }
       } catch (error) {
         console.error("Firebase 인증 실패:", error);
-        // 사용자에게 오류 메시지 표시
         setVerificationMessage('Firebase 인증에 실패했습니다. 앱을 다시 시작해주세요.');
         setIsVerificationSuccess(false);
       }
     };
 
-    // 인증 상태 변경 감지
-    // const unsubscribe = onAuthStateChanged(auth, (user) => {
-    //   if (user) {
-    //     setFirebaseUser(user);
-    //     setUserId(user.uid); // 사용자 UID를 userId로 설정
-    //     console.log("Firebase User UID:", user.uid);
-    //   } else {
-    //     setFirebaseUser(null);
-    //     setUserId(null);
-    //     console.log("No Firebase user is signed in.");
-    //   }
-    // });
+    // [수정] Firebase 인증 상태 변경 감지 리스너 활성화
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setFirebaseUser(user);
+        setUserId(user.uid); // 사용자 UID를 userId로 설정
+        console.log("Firebase User UID:", user.uid);
+      } else {
+        setFirebaseUser(null);
+        setUserId(null);
+        console.log("No Firebase user is signed in.");
+      }
+    });
 
     initializeFirebase(); // Firebase 초기화 및 인증 시도
 
     return () => {
-      // unsubscribe(); // 컴포넌트 언마운트 시 리스너 해제
+      unsubscribe(); // 컴포넌트 언마운트 시 리스너 해제
       if (timerIntervalId) clearInterval(timerIntervalId); // 타이머 클리어
     };
-  }, []); // 컴포넌트 마운트 시 한 번만 실행
+  }, []);
 
   // 약관 동의 핸들러
   const handleAgreementChange = (e) => {
@@ -109,56 +113,68 @@ export default function UserLoginPage() {
     setUserInfo((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 인증 요청 버튼 클릭 핸들러
-  const handleVerificationRequest = () => {
+  // [수정] 인증 요청 버튼 클릭 핸들러
+  const handleVerificationRequest = async () => {
     if (!userInfo.phoneNumber) {
       setVerificationMessage('전화번호를 입력해주세요.');
       setIsVerificationSuccess(false);
       return;
     }
+    
+    // 6자리 랜덤 인증번호 생성
+    const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedVerificationCode(randomCode);
+    console.log('생성된 인증번호:', randomCode);
 
-    console.log('인증 요청:', userInfo.phoneNumber);
-    setIsVerificationRequested(true);
-    setVerificationTimer(180); // 타이머 초기화
-    if (timerIntervalId) clearInterval(timerIntervalId); // 기존 타이머 클리어
-    setVerificationMessage('');
-    setIsVerificationSuccess(false);
-
-    const id = setInterval(() => {
-      setVerificationTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(id);
-          setIsVerificationRequested(false); // 타이머 종료 시 인증 요청 상태 해제
-          setVerificationMessage('인증 시간이 초과되었습니다. 다시 요청해주세요.');
-          setIsVerificationSuccess(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    setTimerIntervalId(id);
-
-    // 실제 SMS 발송 API 호출 (예시)
-    // 이 부분은 useSmsMessage 훅을 사용하거나 직접 API를 호출하도록 구현해야 합니다.
-    // 현재는 더미 로직으로 대체합니다.
-    // sendSmsMessage({ phone: userInfo.phoneNumber, message: "인증번호: 123456" });
-    setVerificationMessage('인증번호가 발송되었습니다.');
+    setVerificationMessage('인증번호를 발송 중입니다...');
     setIsVerificationSuccess(true);
+    setIsVerificationRequested(true);
+
+    // SMS 발송 훅 사용
+    const messageContent = `[마약검사앱] 본인확인 인증번호는 [${randomCode}]입니다.`;
+    const result = await sendSmsMessage({
+      name: userInfo.name, // 이름
+      phone: userInfo.phoneNumber, // 발신자 번호 (사용자)
+      message: messageContent,
+    });
+
+    if (result && result.success) {
+      setVerificationMessage('인증번호가 발송되었습니다.');
+      setIsVerificationSuccess(true);
+      setVerificationTimer(180); // 타이머 초기화
+      if (timerIntervalId) clearInterval(timerIntervalId); // 기존 타이머 클리어
+      const id = setInterval(() => {
+        setVerificationTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(id);
+            setIsVerificationRequested(false);
+            setVerificationMessage('인증 시간이 초과되었습니다. 다시 요청해주세요.');
+            setIsVerificationSuccess(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      setTimerIntervalId(id);
+    } else {
+      setVerificationMessage(smsError || '인증번호 발송에 실패했습니다. 다시 시도해주세요.');
+      setIsVerificationSuccess(false);
+      setIsVerificationRequested(false);
+    }
   };
 
-  // 인증번호 확인 버튼 클릭 핸들러
+  // [수정] 인증번호 확인 버튼 클릭 핸들러
   const handleVerificationConfirm = () => {
     console.log('인증번호 확인:', userInfo.verificationCode);
-    // 예시: 실제로는 서버에서 인증번호 확인 로직을 구현해야 합니다.
-    if (userInfo.verificationCode === '123456') { // 예시: 실제로는 서버에서 확인
-      clearInterval(timerIntervalId); // 타이머 중지
+    if (userInfo.verificationCode === generatedVerificationCode) {
+      clearInterval(timerIntervalId);
       setVerificationMessage('본인인증이 완료되었습니다.');
       setIsVerificationSuccess(true);
-      setVerificationDone(true); // 인증 완료 상태로 변경
+      setVerificationDone(true);
     } else {
       setVerificationMessage('인증번호가 올바르지 않습니다.');
       setIsVerificationSuccess(false);
-      setVerificationDone(false); // 인증 실패 시 완료 버튼 비활성화
+      setVerificationDone(false);
     }
   };
 
@@ -169,18 +185,19 @@ export default function UserLoginPage() {
       setIsVerificationSuccess(false);
       return;
     }
-    // if (!userId) {
-    //   setVerificationMessage('사용자 인증 정보를 가져올 수 없습니다. 다시 시도해주세요.');
-    //   setIsVerificationSuccess(false);
-    //   console.error("Firebase User ID is not available.");
-    //   return;
-    // }
+
+    if (!userId) {
+      setVerificationMessage('사용자 인증 정보를 가져올 수 없습니다. 다시 시도해주세요.');
+      setIsVerificationSuccess(false);
+      console.error("Firebase User ID is not available.");
+      return;
+    }
 
     try {
       const usersCollectionRef = collection(db, 'users');
       // name과 dob가 일치하는 기존 문서가 있는지 쿼리
-      const q = query(usersCollectionRef, 
-                      where('name', '==', userInfo.name), 
+      const q = query(usersCollectionRef,
+                      where('name', '==', userInfo.name),
                       where('dob', '==', userInfo.dob));
       const querySnapshot = await getDocs(q);
 
@@ -197,7 +214,7 @@ export default function UserLoginPage() {
         console.log('기존 사용자 정보 업데이트 성공 (name, dob 기준):', userInfo);
         setVerificationMessage('기존 사용자 정보가 성공적으로 업데이트되었습니다.');
       } else {
-        // 일치하는 문서가 없다면 새로운 문서 생성 
+        // 일치하는 문서가 없다면 새로운 문서 생성
         const newUserDocRef = doc(usersCollectionRef); // 새로운 문서 ID 생성
         await setDoc(newUserDocRef, {
           name: userInfo.name,
@@ -210,7 +227,7 @@ export default function UserLoginPage() {
         console.log('새로운 사용자 정보 저장 성공 :', userInfo);
         setVerificationMessage('회원가입 및 본인인증이 성공적으로 완료되었습니다.');
       }
-      
+
       setIsVerificationSuccess(true);
       // 성공적으로 저장/업데이트되면 모달을 띄웁니다.
       setShowVerificationModal(true);

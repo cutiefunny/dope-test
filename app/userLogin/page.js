@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import styles from './userLogin.module.css'; // CSS Modules 임포트
 import { useRouter } from 'next/navigation'; // Next.js 13+ App Router에서 useRouter 사용
+import { db, auth } from '../../lib/firebase/clientApp'; // Firebase 클라이언트 앱 임포트
+import { doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore'; // Firestore 함수 임포트
+import { signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth'; // Firebase Auth 함수 임포트
 
 export default function UserLoginPage() {
   const [step, setStep] = useState(1); // 1: 약관 동의, 2: 회원 정보 입력, 3: 인증 완료 모달
@@ -20,20 +23,63 @@ export default function UserLoginPage() {
     phoneNumber: '',
     verificationCode: '',
   });
-  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false); // 인증 완료 모달 표시 여부
   const [isVerificationRequested, setIsVerificationRequested] = useState(false);
   const [verificationDone, setVerificationDone] = useState(false);
-  // [수정] 인증 메시지 상태 추가
   const [verificationMessage, setVerificationMessage] = useState('');
   const [isVerificationSuccess, setIsVerificationSuccess] = useState(false);
 
   const [verificationTimer, setVerificationTimer] = useState(180); // 3분 타이머 (초 단위)
   const [timerIntervalId, setTimerIntervalId] = useState(null);
+  const [firebaseUser, setFirebaseUser] = useState(null); // Firebase 사용자 상태
+  const [userId, setUserId] = useState(null); // Firestore 문서 ID로 사용할 userId
+
+  const router = useRouter();
+
+  // 뒤로가기 아이콘 컴포넌트
   const backIcon = () => (
     <img src="/images/back.png" alt="Back" style={{ width: '8px', height: '15px', marginLeft: '0.5rem' }} />
   );
 
-  const router = useRouter();
+  // Firebase 초기화 및 인증 상태 리스너 설정
+  useEffect(() => {
+    const initializeFirebase = async () => {
+      try {
+        // Canvas 환경에서 제공되는 초기 인증 토큰 사용
+        // __initial_auth_token이 없으면 익명 로그인 시도
+        if (typeof window !== 'undefined' && typeof window.__initial_auth_token !== 'undefined') {
+          await signInWithCustomToken(auth, window.__initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (error) {
+        console.error("Firebase 인증 실패:", error);
+        // 사용자에게 오류 메시지 표시
+        setVerificationMessage('Firebase 인증에 실패했습니다. 앱을 다시 시작해주세요.');
+        setIsVerificationSuccess(false);
+      }
+    };
+
+    // 인증 상태 변경 감지
+    // const unsubscribe = onAuthStateChanged(auth, (user) => {
+    //   if (user) {
+    //     setFirebaseUser(user);
+    //     setUserId(user.uid); // 사용자 UID를 userId로 설정
+    //     console.log("Firebase User UID:", user.uid);
+    //   } else {
+    //     setFirebaseUser(null);
+    //     setUserId(null);
+    //     console.log("No Firebase user is signed in.");
+    //   }
+    // });
+
+    initializeFirebase(); // Firebase 초기화 및 인증 시도
+
+    return () => {
+      // unsubscribe(); // 컴포넌트 언마운트 시 리스너 해제
+      if (timerIntervalId) clearInterval(timerIntervalId); // 타이머 클리어
+    };
+  }, []); // 컴포넌트 마운트 시 한 번만 실행
 
   // 약관 동의 핸들러
   const handleAgreementChange = (e) => {
@@ -65,12 +111,16 @@ export default function UserLoginPage() {
 
   // 인증 요청 버튼 클릭 핸들러
   const handleVerificationRequest = () => {
-    // 실제 인증 요청 로직 (API 호출 등)
+    if (!userInfo.phoneNumber) {
+      setVerificationMessage('전화번호를 입력해주세요.');
+      setIsVerificationSuccess(false);
+      return;
+    }
+
     console.log('인증 요청:', userInfo.phoneNumber);
     setIsVerificationRequested(true);
     setVerificationTimer(180); // 타이머 초기화
     if (timerIntervalId) clearInterval(timerIntervalId); // 기존 타이머 클리어
-    // [수정] 인증 요청 시 메시지 초기화
     setVerificationMessage('');
     setIsVerificationSuccess(false);
 
@@ -79,46 +129,101 @@ export default function UserLoginPage() {
         if (prev <= 1) {
           clearInterval(id);
           setIsVerificationRequested(false); // 타이머 종료 시 인증 요청 상태 해제
+          setVerificationMessage('인증 시간이 초과되었습니다. 다시 요청해주세요.');
+          setIsVerificationSuccess(false);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     setTimerIntervalId(id);
+
+    // 실제 SMS 발송 API 호출 (예시)
+    // 이 부분은 useSmsMessage 훅을 사용하거나 직접 API를 호출하도록 구현해야 합니다.
+    // 현재는 더미 로직으로 대체합니다.
+    // sendSmsMessage({ phone: userInfo.phoneNumber, message: "인증번호: 123456" });
+    setVerificationMessage('인증번호가 발송되었습니다.');
+    setIsVerificationSuccess(true);
   };
 
   // 인증번호 확인 버튼 클릭 핸들러
   const handleVerificationConfirm = () => {
-    // 실제 인증번호 확인 로직 (API 호출 등)
     console.log('인증번호 확인:', userInfo.verificationCode);
-    // 인증 성공 시 모달 표시
+    // 예시: 실제로는 서버에서 인증번호 확인 로직을 구현해야 합니다.
     if (userInfo.verificationCode === '123456') { // 예시: 실제로는 서버에서 확인
       clearInterval(timerIntervalId); // 타이머 중지
-      // [수정] 성공 메시지 표시
       setVerificationMessage('본인인증이 완료되었습니다.');
       setIsVerificationSuccess(true);
       setVerificationDone(true); // 인증 완료 상태로 변경
     } else {
-      // [수정] 실패 메시지 표시
       setVerificationMessage('인증번호가 올바르지 않습니다.');
       setIsVerificationSuccess(false);
       setVerificationDone(false); // 인증 실패 시 완료 버튼 비활성화
     }
   };
 
-  // 인증 완료 모달 확인 버튼 클릭 핸들러 (사용하지 않으므로 제거)
-  // const handleModalConfirm = () => {
-  //   setShowVerificationModal(false);
-  //   setVerificationDone(true); // 인증 완료 상태로 변경
-  //   // 다음 단계로 이동하거나 (예: 회원가입 완료)
-  //   // 여기서는 일단 '완료' 버튼이 활성화되도록 상태를 유지
-  // };
-
   // 완료 버튼 클릭 핸들러
-  const handleComplete = () => {
-    // 최종 회원가입 완료 로직
-    console.log('회원인증 완료:', userInfo);
-    // [수정] alert 대신 페이지 이동
+  const handleComplete = async () => {
+    if (!verificationDone) {
+      setVerificationMessage('전화번호 인증을 완료해야 합니다.');
+      setIsVerificationSuccess(false);
+      return;
+    }
+    // if (!userId) {
+    //   setVerificationMessage('사용자 인증 정보를 가져올 수 없습니다. 다시 시도해주세요.');
+    //   setIsVerificationSuccess(false);
+    //   console.error("Firebase User ID is not available.");
+    //   return;
+    // }
+
+    try {
+      const usersCollectionRef = collection(db, 'users');
+      // name과 dob가 일치하는 기존 문서가 있는지 쿼리
+      const q = query(usersCollectionRef, 
+                      where('name', '==', userInfo.name), 
+                      where('dob', '==', userInfo.dob));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        // 일치하는 문서가 있다면 첫 번째 문서를 업데이트
+        const existingDoc = querySnapshot.docs[0];
+        const userDocRef = doc(db, 'users', existingDoc.id); // 쿼리 결과로 찾은 문서의 ID 사용
+        await updateDoc(userDocRef, {
+          gender: userInfo.gender,
+          region: userInfo.region,
+          phoneNumber: userInfo.phoneNumber,
+          updatedAt: new Date(), // 업데이트 시간 기록
+        });
+        console.log('기존 사용자 정보 업데이트 성공 (name, dob 기준):', userInfo);
+        setVerificationMessage('기존 사용자 정보가 성공적으로 업데이트되었습니다.');
+      } else {
+        // 일치하는 문서가 없다면 새로운 문서 생성 
+        const newUserDocRef = doc(usersCollectionRef); // 새로운 문서 ID 생성
+        await setDoc(newUserDocRef, {
+          name: userInfo.name,
+          dob: userInfo.dob,
+          gender: userInfo.gender,
+          region: userInfo.region,
+          phoneNumber: userInfo.phoneNumber,
+          createdAt: new Date(), // 생성 시간 기록
+        });
+        console.log('새로운 사용자 정보 저장 성공 :', userInfo);
+        setVerificationMessage('회원가입 및 본인인증이 성공적으로 완료되었습니다.');
+      }
+      
+      setIsVerificationSuccess(true);
+      // 성공적으로 저장/업데이트되면 모달을 띄웁니다.
+      setShowVerificationModal(true);
+    } catch (error) {
+      console.error('Firestore에 사용자 정보 저장/업데이트 실패:', error);
+      setVerificationMessage('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
+      setIsVerificationSuccess(false);
+    }
+  };
+
+  // 모달 확인 버튼 클릭 핸들러
+  const handleModalConfirm = () => {
+    setShowVerificationModal(false); // 모달 닫기
     router.push('/'); // 메인 화면으로 이동
   };
 
@@ -310,7 +415,7 @@ export default function UserLoginPage() {
                   확인
                 </button>
               </div>
-              {/* [추가] 인증 메시지 표시 */}
+              {/* 인증 메시지 표시 */}
               {verificationMessage && (
                 <p className={isVerificationSuccess ? styles.successMessage : styles.errorMessage}>
                   {verificationMessage}
@@ -322,22 +427,22 @@ export default function UserLoginPage() {
           <button
             onClick={handleComplete}
             className={`${styles.bottomButton} ${!verificationDone ? styles.disabledButton : ''}`}
-            disabled={!verificationDone} // 인증 완료 모달이 뜬 후에만 활성화
+            disabled={!verificationDone} // 인증 완료 시에만 활성화
           >
             완료
           </button>
         </div>
       )}
 
-      {/* 인증 완료 모달 (사용하지 않으므로 제거) */}
-      {/* {showVerificationModal && (
+      {/* 인증 완료 모달 */}
+      {showVerificationModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
             <p className={styles.modalMessage}>본인인증이 완료되었습니다!</p>
             <button onClick={handleModalConfirm} className={styles.modalButton}>확인</button>
           </div>
         </div>
-      )} */}
+      )}
     </div>
   );
 }

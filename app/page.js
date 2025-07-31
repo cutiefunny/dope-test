@@ -7,11 +7,12 @@ import { useRouter } from 'next/navigation'; // Next.js 라우터 사용
 
 export default function Home() {
   // 현재 화면 상태를 관리하는 state
-  const [screen, setScreen] = useState('splash'); // 'splash', 'intro', 'privacy', 'main'
+  const [screen, setScreen] = useState('splash');
+
   const router = useRouter(); // 라우터 인스턴스 생성
 
   useEffect(() => {
-    // localStorage를 사용하여 첫 방문 여부 확인
+    // 클라이언트 측에서만 실행되도록 useEffect 내부에서 localStorage에 접근
     const hasVisited = localStorage.getItem('hasVisited');
     if (hasVisited) {
       // 이미 방문한 경우 바로 메인 화면으로 이동
@@ -23,7 +24,7 @@ export default function Home() {
       }, 3000); // 3초 후 인트로 화면으로 전환
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, []); // 컴포넌트 마운트 시 한 번만 실행되도록 빈 배열 전달
 
   // 인트로 화면에서 다음 버튼 클릭 시
   const handleNextIntro = () => {

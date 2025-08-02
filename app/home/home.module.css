@@ -113,6 +113,7 @@
   gap: 1rem;
   width: 100%;
   max-width: 500px;
+  margin-top: 10rem;
   margin-bottom: 10rem;
 }
 
@@ -132,7 +133,6 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  margin-bottom: 10rem;
 }
 
 .kitCard {
@@ -180,6 +180,26 @@
 .pageTitle {
   align-self: flex-start;
   color: #1f2937;
+}
+
+.selectedKit {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+  max-width: 500px;
+  margin-top: 2rem;
+  margin-bottom: 2em;
+}
+
+.captureButton {
+  width: 90px;
+  height: 30px;
+  border: none;
+  background-color: #c9c9c9;
+  border-radius: 0.5rem;
+  /* 우측 하단 그림자 */
+  box-shadow: 4px 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* 모바일 화면 대응 */

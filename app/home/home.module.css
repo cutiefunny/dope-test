@@ -105,3 +105,86 @@
     padding: 4rem 1rem;
   }
 }
+
+/* test.module.css */
+.kitGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 10rem;
+}
+
+/* 타액 검사의 경우 2개 아이템을 중앙 정렬 */
+.kitGrid:has(> div:nth-child(2):last-child) {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* 소변 검사의 경우 3개 아이템을 중앙 정렬 */
+.kitGrid:has(> div:nth-child(3):last-child) {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.titleWrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 10rem;
+}
+
+.kitCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ffffff;
+  cursor: pointer;
+}
+
+.kitCard.selected {
+  border-color: #3b82f6; /* 선택 시 파란색 테두리 */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.kitImagePlaceholder {
+  width: 80px;
+  height: 120px;
+  background-color: #e5e7eb;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  /* 우측 하단 그림자 */
+  box-shadow: 4px 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.kitName {
+  font-size: 0.875rem;
+  color: #4b5563;
+  text-align: center;
+}
+
+.contentWrapper {
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 90%;
+  max-width: 600px; /* 최대 너비 설정 */
+  margin: 0 auto; /* 중앙 정렬 */
+  padding: 1rem;
+  border-radius: 1rem;
+}
+
+.pageTitle {
+  align-self: flex-start;
+  color: #1f2937;
+}
+
+/* 모바일 화면 대응 */
+@media (max-width: 480px) {
+  .kitGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

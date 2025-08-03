@@ -1,0 +1,103 @@
+/* app/test/[testType]/[kitId]/capture/result/result.module.css */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: #ffffff;
+}
+
+.header {
+  text-align: center;
+  padding: 1rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.mainContent {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+}
+
+.mainContent h2 {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+}
+
+.resultContainer {
+  background-color: #f0f0f0;
+  width: 100%;
+  max-width: 400px;
+  padding: 1.5rem;
+  border-radius: 10px;
+}
+
+.resultList {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.resultItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.resultItem:last-child {
+  margin-bottom: 0;
+}
+
+.drugName {
+  width: 100px;
+  height: 40px;
+  background-color: #ffffff;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 500;
+}
+
+.resultText {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.positive {
+  color: #ff0000;
+}
+
+.negative {
+  color: #0000ff;
+}
+
+.invalid {
+  color: #333333;
+}
+
+.footer {
+  padding: 2rem;
+  text-align: center;
+}
+
+.exitButton {
+  background-color: #d9d9d9;
+  border: none;
+  border-radius: 20px;
+  padding: 0.8rem 2.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.contactText {
+  font-size: 0.9rem;
+  color: #888888;
+}

@@ -14,7 +14,7 @@ const FlashIcon = () => (
 const SettingsIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="3"></circle>
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V15a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V15a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
   </svg>
 );
 
@@ -78,15 +78,20 @@ export default function CapturePage() {
         stream.getTracks().forEach((track) => track.stop());
       }
 
-      //테스트를 위해 /images/sample.jpg를 base64로 형태로 변환하여 imageDataUrl에 할당
-      const response = await fetch('/images/sample.jpg');
-      const blob = await response.blob();
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
-      reader.onloadend = () => {
-        imageDataUrl = reader.result;
-        handleOCR(imageDataUrl);
-      };
+      // 실제 이미지로 OCR을 수행하려면 아래 테스트 로직을 주석 처리하고 imageDataUrl을 직접 사용하세요.
+      handleOCR(imageDataUrl);
+
+      // --- 테스트용 로직 ---
+      // /images/sample.jpg를 base64로 변환하여 테스트합니다.
+    //   const response = await fetch('/images/sample.jpg');
+    //   const blob = await response.blob();
+    //   const reader = new FileReader();
+    //   reader.readAsDataURL(blob);
+    //   reader.onloadend = () => {
+    //     const testImageDataUrl = reader.result;
+    //     handleOCR(testImageDataUrl);
+    //   };
+      // --- 테스트용 로직 끝 ---
     }
   };
 
@@ -96,14 +101,14 @@ export default function CapturePage() {
     setOcrResult('');
   };
 
-  // Gemini API를 이용한 OCR 처리
+  // Gemini API를 이용한 OCR 처리 및 결과 페이지 이동
   const handleOCR = async (base64ImageData) => {
     setIsLoading(true);
     setOcrResult('이미지를 분석 중입니다...');
 
     try {
       const base64Data = base64ImageData.split(',')[1];
-      const prompt = "In the image, if the test part is positive, write 1, if it is negative, write -1, if it is invalid, write 0, in that order and return it as an array. For example [1,1,0,0,1,0], only array.";
+      const prompt = "In the image, if the test part is positive : write 1, if it is negative : write -1, if it is invalid : write 0, in that order and return it as an array. return only array.";
 
       const payload = {
         contents: [
@@ -122,8 +127,8 @@ export default function CapturePage() {
         ],
       };
 
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY; // API 키
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
       
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -138,19 +143,33 @@ export default function CapturePage() {
       const result = await response.json();
       
       if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-        const text = result.candidates[0].content.parts[0].text;
-        setOcrResult(text);
+        const textResult = result.candidates[0].content.parts[0].text;
+        // Gemini 응답에서 JSON 배열 부분만 추출
+        const jsonMatch = textResult.match(/\[(.*?)\]/);
+        if (jsonMatch) {
+            const jsonString = jsonMatch[0];
+            const resultArray = JSON.parse(jsonString);
+
+            // 결과 페이지로 이동
+            router.push(`/test/${testType}/${kitId}/capture/result?result=${JSON.stringify(resultArray)}`);
+        } else {
+            throw new Error("응답에서 배열을 찾을 수 없습니다.");
+        }
       } else {
         setOcrResult('텍스트를 인식하지 못했습니다. 다시 시도해주세요.');
       }
 
     } catch (error) {
       console.error('OCR 처리 중 오류 발생:', error);
-      setOcrResult('이미지 분석 중 오류가 발생했습니다.');
+      setOcrResult('이미지 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
     }
   };
+  
+  const handleConfirm = () => {
+      router.push(`/test/${testType}/${kitId}/capture/result?result=${ocrResult}`);
+  }
 
   return (
     <div className={styles.container}>
@@ -171,7 +190,7 @@ export default function CapturePage() {
             </>
           )}
         </div>
-        {capturedImage && (
+        {(capturedImage && isLoading) && (
             <div className={styles.ocrResultBox}>
                 <p>{ocrResult}</p>
             </div>

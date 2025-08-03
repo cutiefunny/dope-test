@@ -18,14 +18,14 @@ const SettingsIcon = () => (
   </svg>
 );
 
-
 export default function CapturePage() {
   const router = useRouter();
   const params = useParams();
   const { testType, kitId } = params;
 
   const videoRef = useRef(null);
-  
+  const canvasRef = useRef(null);
+
   const [capturedImage, setCapturedImage] = useState(null);
   const [stream, setStream] = useState(null);
   const [ocrResult, setOcrResult] = useState('');
@@ -60,38 +60,38 @@ export default function CapturePage() {
     };
   }, [capturedImage]);
 
-  // 사진 촬영 및 리사이즈 핸들러
+  // 사진 촬영 핸들러
   const handleCapture = async () => {
-    if (videoRef.current) {
+    if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
-  
-      // 비디오 스트림이 유효한지 확인
-      if (!video.srcObject || video.videoWidth === 0) {
-        alert("카메라가 준비되지 않았습니다. 잠시 후 다시 시도해주세요.");
-        return;
-      }
-      
-      // 리사이즈를 위한 새 캔버스 생성
-      const canvas = document.createElement('canvas');
-      canvas.width = 500;
-      canvas.height = 800; // 500x800 크기로 리사이즈
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
       const context = canvas.getContext('2d');
-
-      // 비디오의 현재 프레임을 500x800 캔버스에 그립니다.
-      context.drawImage(video, 0, 0, 500, 800);
-
-      // 리사이즈된 이미지 데이터 URL 생성
-      const resizedImageDataUrl = canvas.toDataURL('image/png');
+      context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
       
-      setCapturedImage(resizedImageDataUrl);
+      let imageDataUrl = canvas.toDataURL('image/png');
+      setCapturedImage(imageDataUrl);
       
       // 스트림 정지
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
       }
-  
-      // OCR 처리
-      await handleOCR(resizedImageDataUrl);
+
+      // 실제 이미지로 OCR을 수행하려면 아래 테스트 로직을 주석 처리하고 imageDataUrl을 직접 사용하세요.
+      handleOCR(imageDataUrl);
+
+      // --- 테스트용 로직 ---
+      // /images/sample.jpg를 base64로 변환하여 테스트합니다.
+    //   const response = await fetch('/images/dope-test3.jpg');
+    //   const blob = await response.blob();
+    //   const reader = new FileReader();
+    //   reader.readAsDataURL(blob);
+    //   reader.onloadend = () => {
+    //     const testImageDataUrl = reader.result;
+    //     handleOCR(testImageDataUrl);
+    //   };
+      // --- 테스트용 로직 끝 ---
     }
   };
 
@@ -103,12 +103,33 @@ export default function CapturePage() {
 
   // Gemini API를 이용한 OCR 처리 및 결과 페이지 이동
   const handleOCR = async (base64ImageData) => {
+
+    //base64ImageData의 크기를 확인하고, 긴 변의 길이를 500px로 조정합니다.
+    const MAX_DIMENSION = 500;
+    const img = new Image();
+    img.src = base64ImageData;
+    await new Promise((resolve) => {
+      img.onload = resolve;
+    });
+    const scale = Math.min(MAX_DIMENSION / img.width, MAX_DIMENSION / img.height);
+    const resizedWidth = img.width * scale;
+    const resizedHeight = img.height * scale;
+    // 캔버스 크기를 조정하여 이미지를 리사이즈합니다.
+    canvasRef.current.width = resizedWidth;
+    canvasRef.current.height = resizedHeight;
+    const context = canvasRef.current.getContext('2d');
+    context.clearRect(0, 0, resizedWidth, resizedHeight);
+    context.drawImage(img, 0, 0, resizedWidth, resizedHeight);
+    // 리사이즈된 이미지를 base64로 변환합니다.
+    base64ImageData = canvasRef.current.toDataURL('image/png');
+
+    // Gemini API 호출
+    setOcrResult('이미지 분석 중...');
     setIsLoading(true);
-    setOcrResult('이미지를 분석 중입니다...');
 
     try {
       const base64Data = base64ImageData.split(',')[1];
-      const prompt = "In the image, if the test part is positive, write 1, if it is negative, write -1, if it is invalid, write 0, in that order and return it as an array. For example [1,1,0,0,1,0], only array.";
+      const prompt = "If two lines are displayed in the test part of the image, -1, if one line is displayed only in C, 1, and in all other cases, 0. Create an array equal to the number of test parts and return it. Just return an array only. no explanation, no text, no other characters, just an array. The image is as follows:";
 
       const payload = {
         contents: [
@@ -144,7 +165,8 @@ export default function CapturePage() {
       
       if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
         const textResult = result.candidates[0].content.parts[0].text;
-        
+
+        // alert(`인식된 텍스트: ${textResult}`);
         // Gemini 응답에서 JSON 배열 부분만 추출
         const jsonMatch = textResult.match(/\[(.*?)\]/);
         if (jsonMatch) {
@@ -167,6 +189,10 @@ export default function CapturePage() {
       setIsLoading(false);
     }
   };
+  
+  const handleConfirm = () => {
+      router.push(`/test/${testType}/${kitId}/capture/result?result=${ocrResult}`);
+  }
 
   return (
     <div className={styles.container}>
@@ -208,6 +234,7 @@ export default function CapturePage() {
           <div className={styles.switchCameraIcon}></div>
         </div>
       </footer>
+      <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
     </div>
   );
 }

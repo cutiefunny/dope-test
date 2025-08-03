@@ -103,7 +103,7 @@ export default function CapturePage() {
 
     try {
       const base64Data = base64ImageData.split(',')[1];
-      const prompt = "read the text in the image and return it as a string. The image is in base64 format. Do not return any other text or explanation, just the test result";
+      const prompt = "read the text in the image and return it as a string. The image is in base64 format. Do not return any other text or explanation, only the test result but any other text or explanation.";
 
       const payload = {
         contents: [

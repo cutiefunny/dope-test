@@ -74,12 +74,12 @@ export default function CapturePage() {
       // 리사이즈를 위한 새 캔버스 생성
       const canvas = document.createElement('canvas');
       canvas.width = 500;
-      canvas.height = 500;
+      canvas.height = 800; // 500x800 크기로 리사이즈
       const context = canvas.getContext('2d');
-  
-      // 비디오의 현재 프레임을 500x500 캔버스에 그립니다.
-      context.drawImage(video, 0, 0, 500, 500);
-      
+
+      // 비디오의 현재 프레임을 500x800 캔버스에 그립니다.
+      context.drawImage(video, 0, 0, 500, 800);
+
       // 리사이즈된 이미지 데이터 URL 생성
       const resizedImageDataUrl = canvas.toDataURL('image/png');
       

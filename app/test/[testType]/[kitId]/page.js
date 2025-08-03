@@ -63,7 +63,9 @@ export default function TestKitSelectionPage() {
             </div>
 
             <div className={styles.selectedKit}>
-              <p className={styles.kitName}>선택한 키트: {name}</p>
+              <div className={styles.kitImagePlaceholder}></div>
+              <p className={styles.kitName}>{name}</p>
+              <p className={styles.kitDescription}>사용법 안내<br />사진 촬영 후 결과를 확인하세요.</p>
             </div>
 
             {/* 사진 촬영 버튼 */}

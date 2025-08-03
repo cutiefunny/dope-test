@@ -61,7 +61,7 @@ export default function CapturePage() {
   }, [capturedImage]);
 
   // 사진 촬영 핸들러
-  const handleCapture = () => {
+  const handleCapture = async () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -70,15 +70,23 @@ export default function CapturePage() {
       const context = canvas.getContext('2d');
       context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
       
-      const imageDataUrl = canvas.toDataURL('image/png');
+      let imageDataUrl = canvas.toDataURL('image/png');
       setCapturedImage(imageDataUrl);
       
       // 스트림 정지
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
       }
-      
-      handleOCR(imageDataUrl);
+
+      //테스트를 위해 /images/sample.jpg를 base64로 형태로 변환하여 imageDataUrl에 할당
+      const response = await fetch('/images/sample.jpg');
+      const blob = await response.blob();
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        imageDataUrl = reader.result;
+        handleOCR(imageDataUrl);
+      };
     }
   };
 
@@ -95,7 +103,7 @@ export default function CapturePage() {
 
     try {
       const base64Data = base64ImageData.split(',')[1];
-      const prompt = "이 마약 검사 키트 이미지에서 결과를 알려주는 텍스트를 모두 읽어주세요.";
+      const prompt = "read the text in the image and return it as a string. The image is in base64 format. Do not return any other text or explanation, just the test result";
 
       const payload = {
         contents: [
@@ -114,7 +122,7 @@ export default function CapturePage() {
         ],
       };
 
-      const apiKey = ""; // API 키
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY; // API 키
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
       
       const response = await fetch(apiUrl, {

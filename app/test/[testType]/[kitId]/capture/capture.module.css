@@ -54,11 +54,12 @@
 
 .guideBox {
   position: absolute;
-  width: 60vw;
-  height: 40vw;
+  width: 80vw;
+  height: 60vh;
   border: 2px solid white;
   border-radius: 8px;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  margin-bottom: 5rem;
 }
 
 .ocrResultBox {

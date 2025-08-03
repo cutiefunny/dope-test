@@ -47,13 +47,13 @@ export default function HomePage() {
           <button className={styles.kitButton} onClick={() => handleTestSelection('urine')}>
             <span className={styles.buttonText}>소변으로 검사하기</span>
             <span className={styles.arrowIcon}>
-              <img src="/images/arrow.png" alt="right arrow" style={{ width: '20px', height: '20px' }} />
+              <img src="/images/Arrow.png" alt="right arrow" style={{ width: '20px', height: '20px' }} />
             </span>
           </button>
           <button className={styles.kitButton} onClick={() => handleTestSelection('saliva')}>
             <span className={styles.buttonText}>타액으로 검사하기</span>
             <span className={styles.arrowIcon}>
-              <img src="/images/arrow.png" alt="right arrow" style={{ width: '20px', height: '20px' }} />
+              <img src="/images/Arrow.png" alt="right arrow" style={{ width: '20px', height: '20px' }} />
             </span>
           </button>
         </div>

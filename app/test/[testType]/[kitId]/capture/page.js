@@ -83,7 +83,7 @@ export default function CapturePage() {
 
       // --- 테스트용 로직 ---
       // /images/sample.jpg를 base64로 변환하여 테스트합니다.
-    //   const response = await fetch('/images/sample.jpg');
+    //   const response = await fetch('/images/dope-test2.jpg');
     //   const blob = await response.blob();
     //   const reader = new FileReader();
     //   reader.readAsDataURL(blob);
@@ -108,7 +108,7 @@ export default function CapturePage() {
 
     try {
       const base64Data = base64ImageData.split(',')[1];
-      const prompt = "In the image, if the test part is positive : write 1, if it is negative : write -1, if it is invalid : write 0, in that order and return it as an array. return only array.";
+      const prompt = "If two lines are displayed in the test part of the image, -1, if one line is displayed only in C, 1, and in all other cases, 0. Create an array equal to the number of test parts and return it. Just return an array only. no explanation, no text, no other characters, just an array. The image is as follows:";
 
       const payload = {
         contents: [
@@ -144,6 +144,8 @@ export default function CapturePage() {
       
       if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
         const textResult = result.candidates[0].content.parts[0].text;
+
+        alert(`인식된 텍스트: ${textResult}`);
         // Gemini 응답에서 JSON 배열 부분만 추출
         const jsonMatch = textResult.match(/\[(.*?)\]/);
         if (jsonMatch) {

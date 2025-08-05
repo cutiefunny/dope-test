@@ -173,67 +173,7 @@ export default function UserLoginPage() {
       setIsVerificationSuccess(false);
       return;
     }
-
-    if (!userId && testType) { // 관리자 등록 시에는 userId가 없을 수 있음
-        // 관리자 등록 시에는 익명 로그인으로 UID를 받아와서 사용하거나, 별도의 고유 ID 생성 로직 필요
-        // 여기서는 간단히 익명 로그인을 다시 시도
-        try {
-            const userCredential = await signInAnonymously(auth);
-            setUserId(userCredential.user.uid);
-            console.log("관리자 등록을 위한 익명 UID:", userCredential.user.uid);
-        } catch(error) {
-            console.error("관리자 등록 익명 로그인 실패:", error);
-            setVerificationMessage('사용자 정보를 처리할 수 없습니다. 다시 시도해주세요.');
-            setIsVerificationSuccess(false);
-            return;
-        }
-    }
-
-
-    try {
-      const usersCollectionRef = collection(db, 'users');
-      const q = query(usersCollectionRef,
-                      where('name', '==', userInfo.name),
-                      where('dob', '==', userInfo.dob));
-      const querySnapshot = await getDocs(q);
-
-      const userData = {
-        name: userInfo.name,
-        dob: userInfo.dob,
-        gender: userInfo.gender,
-        region: userInfo.region,
-        phoneNumber: userInfo.phoneNumber,
-        // testType이 있을 경우(개인용)에만 testType 필드 추가
-        ...(testType && { testType: testType }),
-      };
-
-
-      if (!querySnapshot.empty) {
-        const existingDoc = querySnapshot.docs[0];
-        const userDocRef = doc(db, 'users', existingDoc.id);
-        await updateDoc(userDocRef, {
-            ...userData,
-            updatedAt: new Date(),
-        });
-        console.log('기존 사용자 정보 업데이트 성공:', userInfo);
-        setVerificationMessage('기존 사용자 정보가 성공적으로 업데이트되었습니다.');
-      } else {
-        const newUserDocRef = doc(usersCollectionRef, userId || undefined); // userId가 있으면 사용, 없으면 자동 생성
-        await setDoc(newUserDocRef, {
-            ...userData,
-            createdAt: new Date(),
-        });
-        console.log('새로운 사용자 정보 저장 성공:', userInfo);
-        setVerificationMessage('회원가입 및 본인인증이 성공적으로 완료되었습니다.');
-      }
-
-      setIsVerificationSuccess(true);
-      setShowVerificationModal(true);
-    } catch (error) {
-      console.error('Firestore에 사용자 정보 저장/업데이트 실패:', error);
-      setVerificationMessage('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
-      setIsVerificationSuccess(false);
-    }
+    setShowVerificationModal(true);
   };
 
   const handleModalConfirm = () => {

@@ -4,6 +4,9 @@
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styles from './result.module.css';
+import { db } from '../../../../../../lib/firebase/clientApp'; // Firebase db import
+import { collection, addDoc } from "firebase/firestore"; // Firestore 함수 import
+import useTestStore from '../../../../../../store/useTestStore'; // Zustand 스토어 import
 
 // 각 키트별 검사 항목 이름 데이터
 const drugMap = {
@@ -23,11 +26,10 @@ export default function ResultPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const { testType, kitId } = params;
+  const userInfo = useTestStore((state) => state.userInfo); // Zustand에서 사용자 정보 가져오기
 
   const [resultArray, setResultArray] = useState([]);
   const [drugNames, setDrugNames] = useState([]);
-
-  console.log('result array:', resultArray);
 
   useEffect(() => {
     const resultStr = searchParams.get('result');
@@ -35,25 +37,51 @@ export default function ResultPage() {
       try {
         const parsedResult = JSON.parse(resultStr);
         setResultArray(parsedResult);
-        // testType과 kitId에 맞는 약물 이름 목록을 가져옵니다.
+        
         if (drugMap[testType] && drugMap[testType][kitId]) {
-          setDrugNames(drugMap[testType][kitId]);
+          const currentDrugNames = drugMap[testType][kitId];
+          setDrugNames(currentDrugNames);
+          
+          // 사용자 정보와 테스트 결과를 Firestore에 저장
+          if (userInfo) {
+            saveTestResult(userInfo, parsedResult, currentDrugNames);
+          }
         }
       } catch (e) {
         console.error("결과 파싱 에러:", e);
-        // 에러 발생 시 홈으로 이동
         router.replace('/home');
       }
     } else {
-        // 결과값이 없으면 홈으로 이동
-        router.replace('/home');
+      router.replace('/home');
     }
-  }, [searchParams, router, testType, kitId]);
+  }, [searchParams, router, testType, kitId, userInfo]);
+
+  const saveTestResult = async (userInfo, testResultArray, drugNames) => {
+    try {
+        const testResultData = {
+            ...userInfo,
+            testType,
+            kitId,
+            testResult: testResultArray.map((result, index) => ({
+                drug: drugNames[index],
+                result: getResultText(result).text,
+            })),
+            createdAt: new Date(),
+        };
+
+        // "testResults " -> "testResults"로 수정 (뒤에 공백 제거)
+        const docRef = await addDoc(collection(db, "testResults"), testResultData);
+        console.log("테스트 결과 저장 성공, 문서 ID: ", docRef.id);
+    } catch (error) {
+        console.error("Firestore에 테스트 결과 저장 실패:", error);
+    }
+  };
+
 
   const getResultText = (value) => {
-    if (value === 1) return { text: '양성입니다.', className: styles.positive };
-    if (value === -1) return { text: '음성입니다.', className: styles.negative };
-    return { text: '무효입니다.', className: styles.invalid };
+    if (value === 1) return { text: '양성', className: styles.positive };
+    if (value === -1) return { text: '음성', className: styles.negative };
+    return { text: '무효', className: styles.invalid };
   };
 
   return (
@@ -71,7 +99,7 @@ export default function ResultPage() {
               return (
                 <li key={index} className={styles.resultItem}>
                   <span className={styles.drugName}>{drugName}</span>
-                  <span className={`${styles.resultText} ${className}`}>{text}</span>
+                  <span className={`${styles.resultText} ${className}`}>{text}입니다.</span>
                 </li>
               );
             })}

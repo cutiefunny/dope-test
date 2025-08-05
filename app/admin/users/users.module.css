@@ -183,3 +183,22 @@
     background-color: #9ca3af;
     color: white;
 }
+
+.resultDetails {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.25rem;
+    background-color: white;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.resultChip {
+    background-color: #f3f4f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}

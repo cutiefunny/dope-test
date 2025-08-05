@@ -9,9 +9,9 @@ import { collection, getDocs } from "firebase/firestore";
 
 export default function UsersPage() {
   const router = useRouter();
-  const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [testResults, setTestResults] = useState([]);
+  const [filteredResults, setFilteredResults] = useState([]);
+  const [selectedResult, setSelectedResult] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -19,53 +19,67 @@ export default function UsersPage() {
   const usersPerPage = 10;
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchTestResults = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "users"));
-        const usersData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          // Firestore 타임스탬프를 문자열로 변환
-          registrationDate: doc.data().createdAt?.toDate().toLocaleDateString('ko-KR') || 'N/A'
-        }));
-        setUsers(usersData);
-        setFilteredUsers(usersData);
+        // 'testResults' 컬렉션에서 데이터를 가져옵니다.
+        const querySnapshot = await getDocs(collection(db, "testResults"));
+        const resultsData = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          // 'testResult' 배열에서 '양성'이 하나라도 있는지 확인합니다.
+          const hasPositive = data.testResult?.some(r => r.result === '양성');
+          
+          return {
+            id: doc.id,
+            ...data,
+            // Firestore 타임스탬프를 문자열로 변환합니다.
+            registrationDate: data.createdAt?.toDate().toLocaleDateString('ko-KR') || 'N/A',
+            // 요약된 검사 결과를 추가합니다.
+            summaryResult: hasPositive ? '양성' : '음성',
+          };
+        });
+        setTestResults(resultsData);
+        setFilteredResults(resultsData);
       } catch (error) {
-        console.error("사용자 데이터 로딩 실패:", error);
+        console.error("테스트 결과 데이터 로딩 실패:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchUsers();
+    fetchTestResults();
   }, []);
   
   useEffect(() => {
-    const results = users.filter(user =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.phoneNumber.includes(searchTerm)
+    // 이름 또는 전화번호로 검색합니다.
+    const results = testResults.filter(result =>
+      (result.name && result.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (result.phoneNumber && result.phoneNumber.includes(searchTerm))
     );
-    setFilteredUsers(results);
+    setFilteredResults(results);
     setCurrentPage(1); // 검색 시 첫 페이지로 이동
-  }, [searchTerm, users]);
+  }, [searchTerm, testResults]);
 
 
-  const handleViewDetails = (user) => {
-    setSelectedUser(user);
+  const handleViewDetails = (result) => {
+    setSelectedResult(result);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setSelectedUser(null);
+    setSelectedResult(null);
   };
   
   // 페이지네이션 관련
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const currentResults = filteredResults.slice(indexOfFirstUser, indexOfLastUser);
+  const totalPages = Math.ceil(filteredResults.length / usersPerPage);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const paginate = (pageNumber) => {
+    if (pageNumber > 0 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
 
   if (loading) {
     return <div>로딩 중...</div>;
@@ -93,23 +107,26 @@ export default function UsersPage() {
             <th>성별</th>
             <th>지역</th>
             <th>검사결과</th>
-            <th>키트번호</th>
+            <th>키트종류</th>
             <th>등록일</th>
             <th>상세</th>
           </tr>
         </thead>
         <tbody>
-          {currentUsers.map((user, index) => (
-            <tr key={user.id}>
+          {currentResults.map((result, index) => (
+            <tr key={result.id}>
               <td>{indexOfFirstUser + index + 1}</td>
-              <td>{user.name}</td>
-              <td>{user.phoneNumber}</td>
-              <td>{user.gender === 'male' ? '남자' : '여자'}</td>
-              <td>{user.region}</td>
-              <td>{user.testResult || 'N/A'}</td>
-              <td>{user.testType || 'N/A'}</td>
-              <td>{user.registrationDate}</td>
-              <td><button onClick={() => handleViewDetails(user)} className={styles.viewButton}>보기</button></td>
+              <td>{result.name}</td>
+              <td>{result.phoneNumber}</td>
+              <td>{result.gender === 'male' ? '남자' : '여자'}</td>
+              <td>{result.region}</td>
+              {/* 요약된 검사 결과를 표시합니다. */}
+              <td style={{ color: result.summaryResult === '양성' ? 'red' : 'blue' }}>
+                {result.summaryResult}
+              </td>
+              <td>{result.testType}</td>
+              <td>{result.registrationDate}</td>
+              <td><button onClick={() => handleViewDetails(result)} className={styles.viewButton}>보기</button></td>
             </tr>
           ))}
         </tbody>
@@ -126,31 +143,35 @@ export default function UsersPage() {
         <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages}>&gt;</button>
       </div>
 
-      {isModalOpen && selectedUser && (
+      {isModalOpen && selectedResult && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
             <button onClick={handleCloseModal} className={styles.closeButton}>×</button>
             <div className={styles.modalBody}>
               <div className={styles.leftPanel}>
-                <div className={styles.detailRow}><label>No.</label><span>{selectedUser.id.slice(0, 6)}</span></div>
-                <div className={styles.detailRow}><label>검사일시</label><input type="text" defaultValue={new Date().toLocaleString('ko-KR')} /></div>
-                <div className={styles.detailRow}><label>이름</label><input type="text" defaultValue={selectedUser.name} /></div>
-                <div className={styles.detailRow}><label>전화번호</label><input type="text" defaultValue={selectedUser.phoneNumber} /></div>
-                <div className={styles.detailRow}><label>성별</label><input type="text" defaultValue={selectedUser.gender === 'male' ? '남자' : '여자'} /></div>
-                <div className={styles.detailRow}><label>지역</label><input type="text" defaultValue={selectedUser.region} /></div>
-                <div className={styles.detailRow}><label>키트번호</label><input type="text" defaultValue={selectedUser.testType || 'N/A'} /></div>
-                <div className={styles.detailRow}>
-                  <label>개인/단체</label>
-                  <select defaultValue="individual">
-                    <option value="individual">개인</option>
-                    <option value="group">단체(관리자)</option>
-                  </select>
-                </div>
+                <div className={styles.detailRow}><label>No.</label><span>{selectedResult.id.slice(0, 6)}</span></div>
+                <div className={styles.detailRow}><label>검사일시</label><input type="text" readOnly defaultValue={selectedResult.registrationDate} /></div>
+                <div className={styles.detailRow}><label>이름</label><input type="text" readOnly defaultValue={selectedResult.name} /></div>
+                <div className={styles.detailRow}><label>전화번호</label><input type="text" readOnly defaultValue={selectedResult.phoneNumber} /></div>
+                <div className={styles.detailRow}><label>성별</label><input type="text" readOnly defaultValue={selectedResult.gender === 'male' ? '남자' : '여자'} /></div>
+                <div className={styles.detailRow}><label>지역</label><input type="text" readOnly defaultValue={selectedResult.region} /></div>
+                <div className={styles.detailRow}><label>키트종류</label><input type="text" readOnly defaultValue={selectedResult.testType} /></div>
+                <div className={styles.detailRow}><label>키트ID</label><input type="text" readOnly defaultValue={selectedResult.kitId} /></div>
               </div>
               <div className={styles.rightPanel}>
                 <div className={styles.imageUpload}>+</div>
-                <div className={styles.detailRow}><label>생년월일</label><input type="text" defaultValue={selectedUser.dob} /></div>
-                <div className={styles.detailRow}><label>검사결과</label><input type="text" defaultValue={selectedUser.testResult || '음성'} className={styles.resultInput} /></div>
+                <div className={styles.detailRow}><label>생년월일</label><input type="text" readOnly defaultValue={selectedResult.dob} /></div>
+                {/* 상세 검사 결과를 모두 표시합니다. */}
+                <div className={styles.detailRow}>
+                    <label>검사결과</label>
+                    <div className={styles.resultDetails}>
+                        {selectedResult.testResult.map((res, index) => (
+                            <div key={index} className={styles.resultChip} style={{ color: res.result === '양성' ? 'red' : 'inherit' }}>
+                                <strong>{res.drug}:</strong> {res.result}
+                            </div>
+                        ))}
+                    </div>
+                </div>
                 <div className={styles.detailRow}>
                   <label>비고</label>
                   <textarea placeholder="해당 칸은 비고란 입니다."></textarea>

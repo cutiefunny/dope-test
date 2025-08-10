@@ -104,97 +104,97 @@ export default function CapturePage() {
   // Gemini API를 이용한 OCR 처리 및 결과 페이지 이동
   const handleOCR = async (base64ImageData) => {
 
-    // //base64ImageData의 크기를 확인하고, 긴 변의 길이를 500px로 조정합니다.
-    // const MAX_DIMENSION = 500;
-    // const img = new Image();
-    // img.src = base64ImageData;
-    // await new Promise((resolve) => {
-    //   img.onload = resolve;
-    // });
-    // const scale = Math.min(MAX_DIMENSION / img.width, MAX_DIMENSION / img.height);
-    // const resizedWidth = img.width * scale;
-    // const resizedHeight = img.height * scale;
-    // // 캔버스 크기를 조정하여 이미지를 리사이즈합니다.
-    // canvasRef.current.width = resizedWidth;
-    // canvasRef.current.height = resizedHeight;
-    // const context = canvasRef.current.getContext('2d');
-    // context.clearRect(0, 0, resizedWidth, resizedHeight);
-    // context.drawImage(img, 0, 0, resizedWidth, resizedHeight);
-    // // 리사이즈된 이미지를 base64로 변환합니다.
-    // base64ImageData = canvasRef.current.toDataURL('image/png');
+    //base64ImageData의 크기를 확인하고, 긴 변의 길이를 500px로 조정합니다.
+    const MAX_DIMENSION = 500;
+    const img = new Image();
+    img.src = base64ImageData;
+    await new Promise((resolve) => {
+      img.onload = resolve;
+    });
+    const scale = Math.min(MAX_DIMENSION / img.width, MAX_DIMENSION / img.height);
+    const resizedWidth = img.width * scale;
+    const resizedHeight = img.height * scale;
+    // 캔버스 크기를 조정하여 이미지를 리사이즈합니다.
+    canvasRef.current.width = resizedWidth;
+    canvasRef.current.height = resizedHeight;
+    const context = canvasRef.current.getContext('2d');
+    context.clearRect(0, 0, resizedWidth, resizedHeight);
+    context.drawImage(img, 0, 0, resizedWidth, resizedHeight);
+    // 리사이즈된 이미지를 base64로 변환합니다.
+    base64ImageData = canvasRef.current.toDataURL('image/png');
 
-    // // Gemini API 호출
-    // setOcrResult('이미지 분석 중...');
-    // setIsLoading(true);
+    // Gemini API 호출
+    setOcrResult('이미지 분석 중...');
+    setIsLoading(true);
 
-    // try {
-      // const base64Data = base64ImageData.split(',')[1];
-      // const prompt = "If two lines are displayed in the test part of the image, -1, if one line is displayed only in C, 1, and in all other cases, 0. Create an array equal to the number of test parts and return it. Just return an array only. no explanation, no text, no other characters, just an array. The image is as follows:";
+    try {
+      const base64Data = base64ImageData.split(',')[1];
+      const prompt = "If two lines are displayed in the test part of the image, -1, if one line is displayed only in C, 1, and in all other cases, 0. Create an array equal to the number of test parts and return it. Just return an array only. no explanation, no text, no other characters, just an array. The image is as follows:";
 
-      // const payload = {
-      //   contents: [
-      //     {
-      //       role: "user",
-      //       parts: [
-      //         { text: prompt },
-      //         {
-      //           inlineData: {
-      //             mimeType: "image/png",
-      //             data: base64Data
-      //           }
-      //         }
-      //       ]
-      //     }
-      //   ],
-      // };
+      const payload = {
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { text: prompt },
+              {
+                inlineData: {
+                  mimeType: "image/png",
+                  data: base64Data
+                }
+              }
+            ]
+          }
+        ],
+      };
 
-      // const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
-      // const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
       
-      // const response = await fetch(apiUrl, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(payload)
-      // });
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-      // if (!response.ok) {
-      //   throw new Error(`API 요청 실패: ${response.statusText}`);
-      // }
+      if (!response.ok) {
+        throw new Error(`API 요청 실패: ${response.statusText}`);
+      }
 
-      // const result = await response.json();
+      const result = await response.json();
       
-      // if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-      //   const textResult = result.candidates[0].content.parts[0].text;
+      if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+        const textResult = result.candidates[0].content.parts[0].text;
 
-      //   // alert(`인식된 텍스트: ${textResult}`);
-      //   // Gemini 응답에서 JSON 배열 부분만 추출
-      //   const jsonMatch = textResult.match(/\[(.*?)\]/);
-      //   if (jsonMatch) {
-      //       const jsonString = jsonMatch[0];
-      //       const resultArray = JSON.parse(jsonString);
+        // alert(`인식된 텍스트: ${textResult}`);
+        // Gemini 응답에서 JSON 배열 부분만 추출
+        const jsonMatch = textResult.match(/\[(.*?)\]/);
+        if (jsonMatch) {
+            const jsonString = jsonMatch[0];
+            const resultArray = JSON.parse(jsonString);
 
-      //       // 결과 페이지로 이동
+            // 결과 페이지로 이동
       //테스트를 위해 resultArray를 직접 설정합니다.
       // 1,-1,0으로 구성 된 6개의 배열을 랜던하게 생성
       //       const resultArray = Array.from({ length: 6 }, () => Math.floor(Math.random() * 3) - 1);
       //       console.log("인식된 결과 배열:", resultArray);
       //       setOcrResult(resultArray.join(', '));
       //       // 결과 페이지로 이동
-      let resultArray = Array.from({ length: 6 }, () => Math.floor(Math.random() * 3) - 1);
+      // let resultArray = Array.from({ length: 6 }, () => Math.floor(Math.random() * 3) - 1);
       router.push(`/test/${testType}/${kitId}/capture/result?result=${JSON.stringify(resultArray)}`);
-      //   } else {
-      //       throw new Error("응답에서 배열을 찾을 수 없습니다.");
-      //   }
-      // } else {
-      //   setOcrResult('텍스트를 인식하지 못했습니다. 다시 시도해주세요.');
-      // }
+        } else {
+            throw new Error("응답에서 배열을 찾을 수 없습니다.");
+        }
+      } else {
+        setOcrResult('텍스트를 인식하지 못했습니다. 다시 시도해주세요.');
+      }
 
-    // } catch (error) {
-    //   console.error('OCR 처리 중 오류 발생:', error);
-    //   setOcrResult('이미지 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-    // } finally {
-    //   setIsLoading(false);
-    // }
+    } catch (error) {
+      console.error('OCR 처리 중 오류 발생:', error);
+      setOcrResult('이미지 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleConfirm = () => {

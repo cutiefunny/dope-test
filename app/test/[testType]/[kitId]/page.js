@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 const kitData = {
   urine: [
     { id: 1, name: 'V-CHECK(6)' },
-    { id: 2, name: 'V-CHECK(7)' },
+    // { id: 2, name: 'V-CHECK(7)' }, //고객 요청으로 주석 처리
     { id: 3, name: 'V-CHECK(13)' },
   ],
   saliva: [

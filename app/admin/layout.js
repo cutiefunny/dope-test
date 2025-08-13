@@ -59,6 +59,12 @@ export default function AdminLayout({ children }) {
           >
             프롬프트 관리
           </a>
+          <a
+            href="/admin/test-images"
+            className={pathname.startsWith('/admin/test-images') ? styles.activeLink : ''}
+          >
+            테스트 이미지
+          </a>
         </nav>
       </aside>
       <main className={styles.mainContent}>

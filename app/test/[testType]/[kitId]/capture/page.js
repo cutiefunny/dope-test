@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import styles from './capture.module.css';
+import { db } from '../../../../../lib/firebase/clientApp';
+import { doc, getDoc } from 'firebase/firestore';
 
 // 아이콘 SVG 컴포넌트
 const FlashIcon = () => (
@@ -30,6 +32,26 @@ export default function CapturePage() {
   const [stream, setStream] = useState(null);
   const [ocrResult, setOcrResult] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [prompt, setPrompt] = useState('');
+
+  // Firestore에서 프롬프트 가져오기
+  useEffect(() => {
+    const fetchPrompt = async () => {
+      try {
+        const docRef = doc(db, 'settings', 'prompt');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setPrompt(docSnap.data().text);
+        } else {
+          // 기본 프롬프트 설정
+          setPrompt("If two lines are displayed in the test part of the image, -1, if one line is displayed only in C, 1, and in all other cases, 0. Create an array equal to the number of test parts and return it. Just return an array only. no explanation, no text, no other characters, just an array. The image is as follows:");
+        }
+      } catch (error) {
+        console.error("프롬프트 로딩 실패:", error);
+      }
+    };
+    fetchPrompt();
+  }, []);
 
   // 카메라 스트림 시작
   useEffect(() => {
@@ -62,9 +84,9 @@ export default function CapturePage() {
 
   // 사진 촬영 핸들러
   const handleCapture = async () => {
-    if (videoRef.current && canvasRef.current) {
+    if (videoRef.current) {
       const video = videoRef.current;
-      const canvas = canvasRef.current;
+      const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const context = canvas.getContext('2d');
@@ -78,20 +100,7 @@ export default function CapturePage() {
         stream.getTracks().forEach((track) => track.stop());
       }
 
-      // 실제 이미지로 OCR을 수행하려면 아래 테스트 로직을 주석 처리하고 imageDataUrl을 직접 사용하세요.
       handleOCR(imageDataUrl);
-
-      // --- 테스트용 로직 ---
-      // /images/sample.jpg를 base64로 변환하여 테스트합니다.
-    //   const response = await fetch('/images/dope-test3.jpg');
-    //   const blob = await response.blob();
-    //   const reader = new FileReader();
-    //   reader.readAsDataURL(blob);
-    //   reader.onloadend = () => {
-    //     const testImageDataUrl = reader.result;
-    //     handleOCR(testImageDataUrl);
-    //   };
-      // --- 테스트용 로직 끝 ---
     }
   };
 
@@ -103,34 +112,36 @@ export default function CapturePage() {
 
   // Gemini API를 이용한 OCR 처리 및 결과 페이지 이동
   const handleOCR = async (base64ImageData) => {
+    if (!prompt) {
+      alert("프롬프트를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
 
-    //base64ImageData의 크기를 확인하고, 긴 변의 길이를 500px로 조정합니다.
     const MAX_DIMENSION = 500;
     const img = new Image();
     img.src = base64ImageData;
     await new Promise((resolve) => {
       img.onload = resolve;
     });
+
+    const canvas = document.createElement('canvas');
     const scale = Math.min(MAX_DIMENSION / img.width, MAX_DIMENSION / img.height);
     const resizedWidth = img.width * scale;
     const resizedHeight = img.height * scale;
-    // 캔버스 크기를 조정하여 이미지를 리사이즈합니다.
-    canvasRef.current.width = resizedWidth;
-    canvasRef.current.height = resizedHeight;
-    const context = canvasRef.current.getContext('2d');
-    context.clearRect(0, 0, resizedWidth, resizedHeight);
+    
+    canvas.width = resizedWidth;
+    canvas.height = resizedHeight;
+    const context = canvas.getContext('2d');
     context.drawImage(img, 0, 0, resizedWidth, resizedHeight);
-    // 리사이즈된 이미지를 base64로 변환합니다.
-    base64ImageData = canvasRef.current.toDataURL('image/png');
+    
+    base64ImageData = canvas.toDataURL('image/png');
 
-    // Gemini API 호출
     setOcrResult('이미지 분석 중...');
     setIsLoading(true);
 
     try {
       const base64Data = base64ImageData.split(',')[1];
-      const prompt = "If two lines are displayed in the test part of the image, -1, if one line is displayed only in C, 1, and in all other cases, 0. Create an array equal to the number of test parts and return it. Just return an array only. no explanation, no text, no other characters, just an array. The image is as follows:";
-
+      
       const payload = {
         contents: [
           {
@@ -165,23 +176,11 @@ export default function CapturePage() {
       
       if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
         const textResult = result.candidates[0].content.parts[0].text;
-
-        // alert(`인식된 텍스트: ${textResult}`);
-        // Gemini 응답에서 JSON 배열 부분만 추출
         const jsonMatch = textResult.match(/\[(.*?)\]/);
         if (jsonMatch) {
             const jsonString = jsonMatch[0];
             const resultArray = JSON.parse(jsonString);
-
-            // 결과 페이지로 이동
-      //테스트를 위해 resultArray를 직접 설정합니다.
-      // 1,-1,0으로 구성 된 6개의 배열을 랜던하게 생성
-      //       const resultArray = Array.from({ length: 6 }, () => Math.floor(Math.random() * 3) - 1);
-      //       console.log("인식된 결과 배열:", resultArray);
-      //       setOcrResult(resultArray.join(', '));
-      //       // 결과 페이지로 이동
-      // let resultArray = Array.from({ length: 6 }, () => Math.floor(Math.random() * 3) - 1);
-      router.push(`/test/${testType}/${kitId}/capture/result?result=${JSON.stringify(resultArray)}`);
+            router.push(`/test/${testType}/${kitId}/capture/result?result=${JSON.stringify(resultArray)}`);
         } else {
             throw new Error("응답에서 배열을 찾을 수 없습니다.");
         }

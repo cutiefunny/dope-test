@@ -53,6 +53,12 @@ export default function AdminLayout({ children }) {
           >
             사용자 관리
           </a>
+          <a
+            href="/admin/prompt"
+            className={pathname.startsWith('/admin/prompt') ? styles.activeLink : ''}
+          >
+            프롬프트 관리
+          </a>
         </nav>
       </aside>
       <main className={styles.mainContent}>

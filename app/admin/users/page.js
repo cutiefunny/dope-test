@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './users.module.css';
 import { db } from '../../../lib/firebase/clientApp';
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
 export default function UsersPage() {
   const router = useRouter();
@@ -21,8 +21,9 @@ export default function UsersPage() {
   useEffect(() => {
     const fetchTestResults = async () => {
       try {
-        // 'testResults' 컬렉션에서 데이터를 가져옵니다.
-        const querySnapshot = await getDocs(collection(db, "testResults"));
+        // 'testResults' 컬렉션에서 데이터를 'createdAt' 필드 기준 내림차순으로 정렬하여 가져옵니다.
+        const q = query(collection(db, "testResults"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
         const resultsData = querySnapshot.docs.map(doc => {
           const data = doc.data();
           // 'testResult' 배열에서 '양성'이 하나라도 있는지 확인합니다.

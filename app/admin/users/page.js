@@ -1,4 +1,3 @@
-// app/admin/users/page.js
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -26,8 +25,23 @@ export default function UsersPage() {
         const querySnapshot = await getDocs(q);
         const resultsData = querySnapshot.docs.map(doc => {
           const data = doc.data();
-          // 'testResult' 배열에서 '양성'이 하나라도 있는지 확인합니다.
-          const hasPositive = data.testResult?.some(r => r.result === '양성');
+
+          // --- ⬇️ 요약 결과 로직 수정 ⬇️ ---
+          let summary = '음성'; // 기본값
+          if (data.testResult && Array.isArray(data.testResult) && data.testResult.length > 0) {
+            // 모든 결과가 '무효'인지 확인
+            const isAllInvalid = data.testResult.every(r => r.result === '무효');
+            if (isAllInvalid) {
+              summary = '무효';
+            } else {
+              // '양성'이 하나라도 있는지 확인
+              const hasPositive = data.testResult.some(r => r.result === '양성');
+              if (hasPositive) {
+                summary = '양성';
+              }
+            }
+          }
+          // --- ⬆️ 요약 결과 로직 수정 ⬆️ ---
           
           return {
             id: doc.id,
@@ -35,7 +49,7 @@ export default function UsersPage() {
             // Firestore 타임스탬프를 문자열로 변환합니다.
             registrationDate: data.createdAt?.toDate().toLocaleDateString('ko-KR') || 'N/A',
             // 요약된 검사 결과를 추가합니다.
-            summaryResult: hasPositive ? '양성' : '음성',
+            summaryResult: summary,
           };
         });
         setTestResults(resultsData);
@@ -121,10 +135,17 @@ export default function UsersPage() {
               <td>{result.phoneNumber}</td>
               <td>{result.gender === 'male' ? '남자' : '여자'}</td>
               <td>{result.region}</td>
-              {/* 요약된 검사 결과를 표시합니다. */}
-              <td style={{ color: result.summaryResult === '양성' ? 'red' : 'blue' }}>
+              {/* --- ⬇️ 검사 결과 스타일 수정 ⬇️ --- */}
+              <td style={{ 
+                color: result.summaryResult === '양성' 
+                  ? 'red' 
+                  : result.summaryResult === '무효' 
+                  ? 'gray' 
+                  : 'blue' 
+              }}>
                 {result.summaryResult}
               </td>
+              {/* --- ⬆️ 검사 결과 스타일 수정 ⬆️ --- */}
               <td>{result.testType}</td>
               <td>{result.registrationDate}</td>
               <td><button onClick={() => handleViewDetails(result)} className={styles.viewButton}>보기</button></td>

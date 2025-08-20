@@ -11,13 +11,13 @@ import useTestStore from '../../../../../../store/useTestStore'; // Zustand 스�
 // 각 키트별 검사 항목 이름 데이터
 const drugMap = {
   urine: {
-    '1': ['BUP', 'MDMA', 'MET', 'MOR', 'COC', 'THC'], // V-CHECK(6)
+    '1': ['MDMA','OPI','MET','COC','KET','THC'], // V-CHECK(6)
     '2': ['AMP', 'BUP', 'MDMA', 'MET', 'MOR', 'COC', 'THC'], // V-CHECK(7)
-    '3': ['AMP', 'BAR', 'BUP', 'BZO', 'COC', 'MDMA', 'MET', 'MTD', 'OPI', 'PCP', 'PPX', 'TCA', 'THC'], // V-CHECK(13)
+    '3': ['OPI','MDMA','COT','FYL','COC','BZO','AMP','KET','BUP','LSD','MET','THC'] // V-CHECK(13)
   },
   saliva: {
-    '1': ['AMP', 'MET', 'THC', 'OPI', 'COC', 'BZO'], // V-CHECK(6)
-    '2': ['AMP', 'BAR', 'BUP', 'BZO', 'COC', 'MDMA', 'MET', 'MTD', 'OPI', 'PCP', 'PPX', 'THC'], // V-CHECK(12)
+    '1': ['OPI','KET','MDMA','COC','MET','THC'], // V-CHECK(6)
+    '2': ['OPI','COC','AMP','MET','BZO','THC','KET','MDMA','FYL','BAR'], // V-CHECK(10)
   },
 };
 

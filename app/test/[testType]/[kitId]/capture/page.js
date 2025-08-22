@@ -194,7 +194,10 @@ export default function CapturePage() {
             const resultArray = JSON.parse(jsonString);
             router.push(`/test/${testType}/${kitId}/capture/result?result=${JSON.stringify(resultArray)}`);
         } else {
-            throw new Error("응답에서 배열을 찾을 수 없습니다.");
+            console.log("response : ", result);
+            alert('응답에서 배열을 찾을 수 없습니다. 결과를 확인해주세요. : ' + result.choices[0].message.content);
+            //뒤로가기
+            router.back();
         }
       } else {
         setOcrResult('텍스트를 인식하지 못했습니다. 다시 시도해주세요.');

@@ -1,3 +1,4 @@
+// app/test/[testType]/[kitId]/capture/page.js
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -113,14 +114,15 @@ export default function CapturePage() {
     setOcrResult('');
   };
 
-  // Gemini API를 이용한 OCR 처리 및 결과 페이지 이동
+  // [수정] OpenAI API를 이용한 OCR 처리
   const handleOCR = async (base64ImageData) => {
     if (!prompt) {
       alert("프롬프트를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
       return;
     }
 
-    const MAX_DIMENSION = 500;
+    // 이미지를 리사이징하는 로직은 그대로 사용합니다. (API 비용 및 속도 최적화)
+    const MAX_DIMENSION = 512;
     const img = new Image();
     img.src = base64ImageData;
     await new Promise((resolve) => {
@@ -137,49 +139,56 @@ export default function CapturePage() {
     const context = canvas.getContext('2d');
     context.drawImage(img, 0, 0, resizedWidth, resizedHeight);
     
-    base64ImageData = canvas.toDataURL('image/png');
+    const resizedImageDataUrl = canvas.toDataURL('image/png');
 
     setOcrResult('이미지 분석 중...');
     setIsLoading(true);
 
     try {
-      const base64Data = base64ImageData.split(',')[1];
-      
+      // [수정] OpenAI Vision API에 맞는 payload 형식으로 변경
       const payload = {
-        contents: [
+        model: "gpt-4o", // 또는 "gpt-4-turbo"
+        messages: [
           {
             role: "user",
-            parts: [
-              { text: prompt },
+            content: [
+              { type: "text", text: prompt },
               {
-                inlineData: {
-                  mimeType: "image/png",
-                  data: base64Data
-                }
-              }
-            ]
-          }
+                type: "image_url",
+                image_url: {
+                  url: resizedImageDataUrl,
+                },
+              },
+            ],
+          },
         ],
+        max_tokens: 300,
       };
 
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+      // [수정] OpenAI API 키와 엔드포인트 사용
+      const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+      const apiUrl = 'https://api.openai.com/v1/chat/completions';
       
       const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}` // [수정] OpenAI API는 Bearer 토큰 인증 사용
+        },
         body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
-        throw new Error(`API 요청 실패: ${response.statusText}`);
+        const errorData = await response.json();
+        throw new Error(`API 요청 실패: ${response.statusText} - ${errorData.error.message}`);
       }
 
       const result = await response.json();
       
-      if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-        const textResult = result.candidates[0].content.parts[0].text;
-        const jsonMatch = textResult.match(/\[(.*?)\]/);
+      // [수정] OpenAI API 응답 구조에 맞게 결과 파싱
+      if (result.choices && result.choices[0]?.message?.content) {
+        const textResult = result.choices[0].message.content;
+        const jsonMatch = textResult.match(/\[(.*?)\]/s); // s 플래그 추가
         if (jsonMatch) {
             const jsonString = jsonMatch[0];
             const resultArray = JSON.parse(jsonString);
@@ -193,16 +202,12 @@ export default function CapturePage() {
 
     } catch (error) {
       console.error('OCR 처리 중 오류 발생:', error);
-      setOcrResult('이미지 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      setOcrResult(`이미지 분석 중 오류가 발생했습니다: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
   
-  const handleConfirm = () => {
-      router.push(`/test/${testType}/${kitId}/capture/result?result=${ocrResult}`);
-  }
-
   return (
     <div className={styles.container}>
       <header className={styles.header}>

@@ -6,8 +6,9 @@ import { useRouter, useParams } from 'next/navigation';
 import styles from './capture.module.css';
 import { db } from '../../../../../lib/firebase/clientApp';
 import { doc, getDoc } from 'firebase/firestore';
+import useTestStore from '../../../../../store/useTestStore'; // Zustand 스토어 import
 
-// 아이콘 SVG 컴포넌트
+// 아이콘 SVG 컴포넌트 (기존과 동일)
 const FlashIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
@@ -27,15 +28,17 @@ export default function CapturePage() {
   const { testType, kitId } = params;
 
   const videoRef = useRef(null);
-  const canvasRef = useRef(null);
+  const { frontImage, setFrontImage, backImage, setBackImage } = useTestStore();
 
+  const [captureStep, setCaptureStep] = useState('front'); // 'front', 'back'
   const [capturedImage, setCapturedImage] = useState(null);
   const [stream, setStream] = useState(null);
   const [ocrResult, setOcrResult] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [prompt, setPrompt] = useState('');
+  const [guideText, setGuideText] = useState('가이드라인에 맞춰 키트의 앞면을 촬영해주세요.');
 
-  // Firestore에서 프롬프트 가져오기
+  // Firestore에서 프롬프트 가져오기 (기존과 동일)
   useEffect(() => {
     const fetchPrompt = async () => {
       if (!testType || !kitId) return;
@@ -46,7 +49,6 @@ export default function CapturePage() {
         if (docSnap.exists()) {
           setPrompt(docSnap.data().text);
         } else {
-          // 기본 프롬프트 설정 또는 에러 처리
           console.warn(`${promptId}에 해당하는 프롬프트를 찾을 수 없습니다.`);
           setPrompt("If two lines are displayed in the test part of the image, -1, if one line is displayed only in C, 1, and in all other cases, 0. Create an array equal to the number of test parts and return it. Just return an array only. no explanation, no text, no other characters, just an array. The image is as follows:");
         }
@@ -57,12 +59,12 @@ export default function CapturePage() {
     fetchPrompt();
   }, [testType, kitId]);
 
-  // 카메라 스트림 시작
+  // 카메라 스트림 시작 (기존과 동일)
   useEffect(() => {
     const startCamera = async () => {
       try {
         const mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' }, // 후면 카메라 사용
+          video: { facingMode: 'environment' },
         });
         setStream(mediaStream);
         if (videoRef.current) {
@@ -79,55 +81,24 @@ export default function CapturePage() {
     }
 
     return () => {
-      // 컴포넌트 언마운트 시 스트림 정지
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
       }
     };
   }, [capturedImage]);
 
-  // 사진 촬영 핸들러
-  const handleCapture = async () => {
-    if (videoRef.current) {
-      const video = videoRef.current;
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const context = canvas.getContext('2d');
-      context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-      
-      let imageDataUrl = canvas.toDataURL('image/png');
-      setCapturedImage(imageDataUrl);
-      
-      // 스트림 정지
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
 
-      handleOCR(imageDataUrl);
-    }
-  };
-
-  // 다시 찍기 핸들러
-  const handleRetake = () => {
-    setCapturedImage(null);
-    setOcrResult('');
-  };
-
-  // [수정] OpenAI API를 이용한 OCR 처리
-  const handleOCR = async (base64ImageData) => {
+  // 이미지에서 OCR 결과(배열)를 추출하는 함수
+  const getOcrResult = async (base64ImageData) => {
     if (!prompt) {
       alert("프롬프트를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
-      return;
+      return null;
     }
 
-    // 이미지를 리사이징하는 로직은 그대로 사용합니다. (API 비용 및 속도 최적화)
     const MAX_DIMENSION = 512;
     const img = new Image();
     img.src = base64ImageData;
-    await new Promise((resolve) => {
-      img.onload = resolve;
-    });
+    await new Promise((resolve) => { img.onload = resolve; });
 
     const canvas = document.createElement('canvas');
     const scale = Math.min(MAX_DIMENSION / img.width, MAX_DIMENSION / img.height);
@@ -136,36 +107,24 @@ export default function CapturePage() {
     
     canvas.width = resizedWidth;
     canvas.height = resizedHeight;
-    const context = canvas.getContext('2d');
-    context.drawImage(img, 0, 0, resizedWidth, resizedHeight);
-    
+    canvas.getContext('2d').drawImage(img, 0, 0, resizedWidth, resizedHeight);
     const resizedImageDataUrl = canvas.toDataURL('image/png');
 
-    setOcrResult('이미지 분석 중...');
-    setIsLoading(true);
-
     try {
-      // [수정] OpenAI Vision API에 맞는 payload 형식으로 변경
       const payload = {
-        model: "gpt-4o", // 또는 "gpt-4-turbo"
+        model: "gpt-4o",
         messages: [
           {
             role: "user",
             content: [
               { type: "text", text: prompt },
-              {
-                type: "image_url",
-                image_url: {
-                  url: resizedImageDataUrl,
-                },
-              },
+              { type: "image_url", image_url: { url: resizedImageDataUrl } },
             ],
           },
         ],
         max_tokens: 300,
       };
 
-      // [수정] OpenAI API 키와 엔드포인트 사용
       const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
       const apiUrl = 'https://api.openai.com/v1/chat/completions';
       
@@ -173,7 +132,7 @@ export default function CapturePage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}` // [수정] OpenAI API는 Bearer 토큰 인증 사용
+          'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify(payload)
       });
@@ -185,32 +144,95 @@ export default function CapturePage() {
 
       const result = await response.json();
       
-      // [수정] OpenAI API 응답 구조에 맞게 결과 파싱
       if (result.choices && result.choices[0]?.message?.content) {
         const textResult = result.choices[0].message.content;
-        const jsonMatch = textResult.match(/\[(.*?)\]/s); // s 플래그 추가
+        const jsonMatch = textResult.match(/\[(.*?)\]/s);
         if (jsonMatch) {
-            const jsonString = jsonMatch[0];
-            const resultArray = JSON.parse(jsonString);
-            router.push(`/test/${testType}/${kitId}/capture/result?result=${JSON.stringify(resultArray)}`);
-        } else {
-            console.log("response : ", result);
-            alert('응답에서 배열을 찾을 수 없습니다. 결과를 확인해주세요. : ' + result.choices[0].message.content);
-            //뒤로가기
-            router.back();
+            return JSON.parse(jsonMatch[0]);
         }
-      } else {
-        setOcrResult('텍스트를 인식하지 못했습니다. 다시 시도해주세요.');
       }
+      return null;
 
     } catch (error) {
       console.error('OCR 처리 중 오류 발생:', error);
       setOcrResult(`이미지 분석 중 오류가 발생했습니다: ${error.message}`);
-    } finally {
-      setIsLoading(false);
+      return null;
     }
   };
-  
+
+  // 사진 촬영 핸들러
+  const handleCapture = async () => {
+    if (videoRef.current) {
+      const video = videoRef.current;
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+      
+      const imageDataUrl = canvas.toDataURL('image/png');
+      setCapturedImage(imageDataUrl);
+      
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+
+      // V-CHECK(13) 키트인 경우 (kitId가 3)
+      if (kitId === '3') {
+        if (captureStep === 'front') {
+          setFrontImage(imageDataUrl);
+          setCaptureStep('back');
+          setGuideText('가이드라인에 맞춰 키트의 뒷면을 촬영해주세요.');
+          setCapturedImage(null); // 다시 카메라 화면을 보여주기 위해 null로 설정
+        } else { // 뒷면 촬영 완료
+          setBackImage(imageDataUrl);
+          setIsLoading(true);
+          setOcrResult('이미지 분석 중...');
+          
+          const frontResult = await getOcrResult(frontImage);
+          const backResult = await getOcrResult(imageDataUrl);
+
+          if (frontResult && backResult) {
+            const combinedResult = [...frontResult, ...backResult];
+            router.push(`/test/${testType}/${kitId}/capture/result?result=${JSON.stringify(combinedResult)}`);
+          } else {
+            alert('결과를 분석하지 못했습니다. 다시 시도해주세요.');
+            router.back();
+          }
+          setIsLoading(false);
+        }
+      } else { // 그 외 키트
+        setIsLoading(true);
+        setOcrResult('이미지 분석 중...');
+        const result = await getOcrResult(imageDataUrl);
+        if (result) {
+          router.push(`/test/${testType}/${kitId}/capture/result?result=${JSON.stringify(result)}`);
+        } else {
+          alert('결과를 분석하지 못했습니다. 다시 시도해주세요.');
+          router.back();
+        }
+        setIsLoading(false);
+      }
+    }
+  };
+
+
+  // 다시 찍기 핸들러
+  const handleRetake = () => {
+    if (kitId === '3' && captureStep === 'back') {
+      // 뒷면 촬영 중 다시 찍기 -> 앞면 이미지 유지하고 뒷면만 다시
+      setCapturedImage(null);
+    } else {
+      // 그 외의 경우 처음부터 다시
+      setFrontImage(null);
+      setBackImage(null);
+      setCaptureStep('front');
+      setGuideText('가이드라인에 맞춰 키트의 앞면을 촬영해주세요.');
+      setCapturedImage(null);
+    }
+    setOcrResult('');
+  };
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -227,6 +249,7 @@ export default function CapturePage() {
             <>
               <video ref={videoRef} autoPlay playsInline className={styles.video}></video>
               <div className={styles.guideBox}></div>
+              <p className={styles.guideText}>{guideText}</p>
             </>
           )}
         </div>
@@ -251,7 +274,6 @@ export default function CapturePage() {
           <div className={styles.switchCameraIcon}></div>
         </div>
       </footer>
-      <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
     </div>
   );
 }

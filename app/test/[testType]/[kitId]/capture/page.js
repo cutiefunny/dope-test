@@ -8,7 +8,7 @@ import { db } from '../../../../../lib/firebase/clientApp';
 import { doc, getDoc } from 'firebase/firestore';
 import useTestStore from '../../../../../store/useTestStore'; // Zustand 스토어 import
 
-// 아이콘 SVG 컴포넌트 (기존과 동일)
+// 아이콘 SVG 컴포넌트
 const FlashIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
@@ -28,7 +28,7 @@ export default function CapturePage() {
   const { testType, kitId } = params;
 
   const videoRef = useRef(null);
-  const { frontImage, setFrontImage, backImage, setBackImage } = useTestStore();
+  const { frontImage, setFrontImage, setBackImage } = useTestStore();
 
   const [captureStep, setCaptureStep] = useState('front'); // 'front', 'back'
   const [capturedImage, setCapturedImage] = useState(null);
@@ -38,7 +38,7 @@ export default function CapturePage() {
   const [prompt, setPrompt] = useState('');
   const [guideText, setGuideText] = useState('가이드라인에 맞춰 키트의 앞면을 촬영해주세요.');
 
-  // Firestore에서 프롬프트 가져오기 (기존과 동일)
+  // Firestore에서 프롬프트 가져오기
   useEffect(() => {
     const fetchPrompt = async () => {
       if (!testType || !kitId) return;
@@ -59,7 +59,7 @@ export default function CapturePage() {
     fetchPrompt();
   }, [testType, kitId]);
 
-  // 카메라 스트림 시작 (기존과 동일)
+  // 카메라 스트림 시작
   useEffect(() => {
     const startCamera = async () => {
       try {
@@ -86,7 +86,6 @@ export default function CapturePage() {
       }
     };
   }, [capturedImage]);
-
 
   // 이미지에서 OCR 결과(배열)를 추출하는 함수
   const getOcrResult = async (base64ImageData) => {
@@ -171,23 +170,21 @@ export default function CapturePage() {
       context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
       
       const imageDataUrl = canvas.toDataURL('image/png');
-      setCapturedImage(imageDataUrl);
       
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
-
       // V-CHECK(13) 키트인 경우 (kitId가 3)
       if (kitId === '3') {
         if (captureStep === 'front') {
-          setFrontImage(imageDataUrl);
-          setCaptureStep('back');
+          setFrontImage(imageDataUrl); // 앞면 이미지 저장
+          setCaptureStep('back'); // 다음 단계를 뒷면으로 설정
           setGuideText('가이드라인에 맞춰 키트의 뒷면을 촬영해주세요.');
-          setCapturedImage(null); // 다시 카메라 화면을 보여주기 위해 null로 설정
+          // 카메라를 다시 활성화하기 위해 capturedImage를 null로 설정
+          // 이 부분이 핵심입니다!
+          setCapturedImage(null); 
         } else { // 뒷면 촬영 완료
           setBackImage(imageDataUrl);
+          setCapturedImage(imageDataUrl); // 결과 분석 중 이미지를 보여주기 위해 설정
           setIsLoading(true);
-          setOcrResult('이미지 분석 중...');
+          setOcrResult('양면 이미지 분석 중...');
           
           const frontResult = await getOcrResult(frontImage);
           const backResult = await getOcrResult(imageDataUrl);
@@ -197,11 +194,12 @@ export default function CapturePage() {
             router.push(`/test/${testType}/${kitId}/capture/result?result=${JSON.stringify(combinedResult)}`);
           } else {
             alert('결과를 분석하지 못했습니다. 다시 시도해주세요.');
-            router.back();
+            handleRetake(); // 실패 시 초기화
           }
           setIsLoading(false);
         }
       } else { // 그 외 키트
+        setCapturedImage(imageDataUrl);
         setIsLoading(true);
         setOcrResult('이미지 분석 중...');
         const result = await getOcrResult(imageDataUrl);
@@ -209,28 +207,23 @@ export default function CapturePage() {
           router.push(`/test/${testType}/${kitId}/capture/result?result=${JSON.stringify(result)}`);
         } else {
           alert('결과를 분석하지 못했습니다. 다시 시도해주세요.');
-          router.back();
+          handleRetake(); // 실패 시 초기화
         }
         setIsLoading(false);
       }
     }
   };
 
-
   // 다시 찍기 핸들러
   const handleRetake = () => {
-    if (kitId === '3' && captureStep === 'back') {
-      // 뒷면 촬영 중 다시 찍기 -> 앞면 이미지 유지하고 뒷면만 다시
-      setCapturedImage(null);
-    } else {
-      // 그 외의 경우 처음부터 다시
-      setFrontImage(null);
-      setBackImage(null);
-      setCaptureStep('front');
-      setGuideText('가이드라인에 맞춰 키트의 앞면을 촬영해주세요.');
-      setCapturedImage(null);
-    }
+    // 모든 상태를 초기화하여 처음부터 다시 시작
+    setFrontImage(null);
+    setBackImage(null);
+    setCaptureStep('front');
+    setGuideText('가이드라인에 맞춰 키트의 앞면을 촬영해주세요.');
+    setCapturedImage(null);
     setOcrResult('');
+    setIsLoading(false);
   };
 
   return (
@@ -253,7 +246,7 @@ export default function CapturePage() {
             </>
           )}
         </div>
-        {(capturedImage && isLoading) && (
+        {isLoading && (
             <div className={styles.ocrResultBox}>
                 <p>{ocrResult}</p>
             </div>
@@ -268,8 +261,8 @@ export default function CapturePage() {
         </div>
         <div className={styles.controls}>
           <div className={styles.galleryIcon}></div>
-          <button onClick={capturedImage ? handleRetake : handleCapture} className={styles.shutterButton}>
-            {capturedImage && <div className={styles.retakeIcon}></div>}
+          <button onClick={isLoading ? undefined : (capturedImage ? handleRetake : handleCapture)} className={styles.shutterButton}>
+            {capturedImage && !isLoading && <div className={styles.retakeIcon}></div>}
           </button>
           <div className={styles.switchCameraIcon}></div>
         </div>

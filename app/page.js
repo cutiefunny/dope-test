@@ -18,10 +18,11 @@ export default function Home() {
       // 이미 방문한 경우 바로 메인 화면으로 이동
       setScreen('main');
     } else {
-      // 첫 방문인 경우 스플래시 화면 표시 후 순차적으로 이동
-      const timer = setTimeout(() => {
-        setScreen('intro');
-      }, 3000); // 3초 후 인트로 화면으로 전환
+      // // 첫 방문인 경우 스플래시 화면 표시 후 순차적으로 이동
+      // const timer = setTimeout(() => {
+      //   setScreen('intro');
+      // }, 3000); // 3초 후 인트로 화면으로 전환
+      setScreen('intro');
       return () => clearTimeout(timer);
     }
   }, []); // 컴포넌트 마운트 시 한 번만 실행되도록 빈 배열 전달
@@ -43,9 +44,10 @@ export default function Home() {
         <div className={styles.splashContent}> {/* 스플래시 화면 컨테이너 */}
           {/* 스플래시 화면 */}
           <Image
-            src="/images/splash.jpg" // 실제 스플래시 이미지 경로로 변경하세요.
+            src="/images/icon-512.png" // 실제 스플래시 이미지 경로로 변경하세요.
             alt="App Splash Screen"
-            fill // 부모 요소를 꽉 채우도록 설정
+            //이미지 크기 유지
+            style={{ objectFit: 'cover', width: '100%', height: '100%' }}
             priority
             className={styles.splashImage} // 이미지 자체에 스타일을 적용할 클래스
           />
@@ -58,10 +60,9 @@ export default function Home() {
           {/* 어플 소개 화면 */}
           <div>
           <Image
-            src="/images/logo.jpg" // 어플 소개 화면 이미지 경로
+            src="/images/logo2.png" // 어플 소개 화면 이미지 경로
             alt="App Introduction Screen"
-            width={150}
-            height={150}
+            style={{ objectFit: 'cover', width: '100%', height: '100%' }}
             priority
             className={styles.logo}
           />

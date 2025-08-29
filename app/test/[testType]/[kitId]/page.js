@@ -1,79 +1,88 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
-import styles from '../../../home/home.module.css';
+import styles from './page.module.css'; // 이 페이지의 전용 스타일 import
 import commonStyles from '../../../common.module.css';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
-// 각 검사 유형별 키트 데이터
+// 각 검사 유형별 키트 데이터 (이미지 경로 추가)
 const kitData = {
   urine: [
-    { id: 1, name: 'V-CHECK(6)' },
+    { id: 1, name: 'V-CHECK(6)', image: '/images/kit1.png' },
     // { id: 2, name: 'V-CHECK(7)' }, //고객 요청으로 주석 처리
-    { id: 3, name: 'V-CHECK(13)' },
+    { id: 3, name: 'V-CHECK(13)', image: '/images/kit1.png' },
   ],
   saliva: [
-    { id: 1, name: 'V-CHECK(6)' },
-    { id: 2, name: 'V-CHECK(12)' },
+    { id: 1, name: 'V-CHECK(6)', image: '/images/kit1.png' },
+    { id: 2, name: 'V-CHECK(12)', image: '/images/kit1.png' },
   ],
 };
 
-// 뒤로가기 아이콘 컴포넌트
-  const ArrowL = () => (
-    <img src="/images/ArrowL.png" alt="Back" style={{ width: '20px', height: '20px', marginLeft: '0.5rem' }} />
-  );
-
-export default function TestKitSelectionPage() {
+export default function TestKitDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { kitId } = params;
-  const { testType } = params;
-  const name = kitData[testType]?.find(kit => kit.id === parseInt(kitId))?.name || '선택된 키트';
+  const { kitId, testType } = params;
 
+  const [kitInfo, setKitInfo] = useState(null);
   const [pageTitle, setPageTitle] = useState('');
 
   useEffect(() => {
-    if (testType === 'urine') {
-      setPageTitle('소변으로 검사하기');
-    } else if (testType === 'saliva') {
-      setPageTitle('타액으로 검사하기');
-    } else {
-      // 유효하지 않은 testType일 경우 홈으로 리디렉션
-      router.push('/home');
+    if (testType && kitId) {
+      const kit = kitData[testType]?.find(k => k.id === parseInt(kitId));
+      if (kit) {
+        setKitInfo(kit);
+        setPageTitle(testType === 'urine' ? '소변으로 검사하기' : '타액으로 검사하기');
+      } else {
+        router.push('/home');
+      }
     }
-  }, [testType, router]);
+  }, [testType, kitId, router]);
 
   // 뒤로가기 아이콘 컴포넌트
   const backIcon = () => (
-    <img src="/images/back.png" alt="Back" style={{ width: '8px', height: '15px', marginLeft: '0.5rem' }} />
-  );
+      <Image src="/images/back.png" alt="Back" width={8} height={15} style={{ marginLeft: '0.5rem' }} />
+    );
+
+  if (!kitInfo) {
+    return <div>로딩 중...</div>;
+  }
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <button onClick={() => router.back()} className={commonStyles.backButton}>{backIcon()}</button>
-        <h2 className={styles.headerTitle}>LOGO</h2>
+        <span className={styles.headerTitle}>{pageTitle}</span>
       </div>
 
       <div className={styles.contentArea}>
-        <div className={styles.contentWrapper}>
-            <div className={styles.titleWrapper}>
-                <span className={styles.pageTitle}>{pageTitle}</span>
-                <button onClick={() => router.back()} className={commonStyles.backButton}>{ArrowL()}</button>
-            </div>
+        <div className={styles.kitCard}>
+          <Image
+            src={kitInfo.image}
+            alt={kitInfo.name}
+            width={180}
+            height={220}
+            style={{ objectFit: 'contain' }}
+          />
+        </div>
+        <p className={styles.kitName}>{kitInfo.name}</p>
 
-            <div className={styles.selectedKit}>
-              <div className={styles.kitImagePlaceholder}></div>
-              <p className={styles.kitName}>{name}</p>
-              <p className={styles.kitDescription}>사용법 안내<br />사진 촬영 후 결과를 확인하세요.</p>
-            </div>
-
-            {/* 사진 촬영 버튼 */}
-            <button className={styles.captureButton} onClick={() => router.push(`/test/${testType}/${kitId}/capture`)}>
-              <span className={styles.captureButtonText}>사진 촬영</span>
-            </button>
+        <div className={styles.usageGuide}>
+          <h3 className={styles.usageTitle}>사용법 안내</h3>
+          <p className={styles.usageDescription}>
+            해당 키트에 대한<br />
+            소개 및 사용법<br />
+            안내문구 입니다.
+          </p>
         </div>
       </div>
+
+      <button
+        className={commonStyles.bottomButton}
+        onClick={() => router.push(`/test/${testType}/${kitId}/capture`)}
+      >
+        사진 촬영
+      </button>
     </div>
   );
 }

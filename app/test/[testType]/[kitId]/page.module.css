@@ -1,0 +1,81 @@
+/* app/test/[testType]/[kitId]/page.module.css */
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100vw;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 1rem;
+}
+
+.headerTitle {
+  flex-grow: 1;
+  text-align: center;
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600; /* font-semibold */
+  color: #1f2937;
+  margin-right: 2rem; /* 뒤로가기 버튼 공간 확보 */
+}
+
+.pageTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #212529;
+  margin-left: 6rem;
+}
+
+.contentArea {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+
+.kitCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  background-color: #F5F6F7;
+  border-radius: 0.75rem; /* 12px */
+  padding: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+}
+
+.kitName {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 600;
+  color: #333;
+}
+
+.usageGuide {
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.usageTitle {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 700;
+  color: #dc2626; /* red-600 */
+  margin-bottom: 1rem;
+}
+
+.usageDescription {
+  font-size: 1rem; /* 16px */
+  color: #dc2626; /* red-600 */
+  line-height: 1.5;
+}

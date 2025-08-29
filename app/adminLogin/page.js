@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import styles from './adminLogin.module.css'; // adminLogin 고유 스타일
-import commonStyles from '../common.module.css'; // [수정] 공통 스타일 임포트
+import styles from './adminLogin.module.css';
+import commonStyles from '../common.module.css';
 import { useRouter } from 'next/navigation';
 import { auth } from '../../lib/firebase/clientApp';
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
@@ -12,28 +12,18 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showErrorModal, setShowErrorModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false); // [추가] 로그인 성공 모달
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const router = useRouter();
 
   useEffect(() => {
+    // 페이지 로드 시 로그인 상태만 확인하여 로딩 화면을 제어합니다.
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        if (user.providerData.length > 0 && user.providerData[0].providerId === 'password') {
-          console.log("관리자 로그인 성공, UID:", user.uid);
-          router.push('/home');
-        } else {
-          console.log("이메일/비밀번호로 인증되지 않은 사용자입니다. 로그아웃 처리합니다.");
-          auth.signOut();
-        }
-      } else {
-        console.log("관리자 로그인 상태 아님.");
-        setLoading(false);
-      }
+      setLoading(false);
     });
     return () => unsubscribe();
-  }, [router]);
+  }, []);
 
   const backIcon = () => (
     <img src="/images/back.png" alt="Back" style={{ width: '8px', height: '15px', marginLeft: '0.5rem' }} />
@@ -51,7 +41,8 @@ export default function AdminLoginPage() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // 로그인 성공 시 onAuthStateChanged 리스너가 호출되어 모달을 띄웁니다.
+      // 로그인 성공 시, 성공 모달을 띄웁니다.
+      setShowSuccessModal(true);
     } catch (error) {
       let message = '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.';
       if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
@@ -72,9 +63,9 @@ export default function AdminLoginPage() {
     }
   };
 
-  // [추가] 성공 모달 확인 버튼 핸들러
   const handleSuccessModalConfirm = () => {
     setShowSuccessModal(false);
+    // 성공 모달의 '확인' 버튼을 누르면 홈으로 이동합니다.
     router.push('/home');
   };
 
@@ -88,13 +79,11 @@ export default function AdminLoginPage() {
 
   return (
     <div className={styles.container}>
-      {/* 뒤로가기 버튼 및 타이틀 */}
       <div className={styles.header}>
         <button onClick={() => router.back()} className={commonStyles.backButton}>{backIcon()}</button>
         <h2 className={styles.headerTitle}>관리자 로그인</h2>
       </div>
 
-      {/* 로그인 폼 */}
       <div className={styles.contentArea}>
         <div className={commonStyles.inputGroup}>
           <label htmlFor="email" className={commonStyles.inputLabel}>아이디</label>
@@ -125,7 +114,6 @@ export default function AdminLoginPage() {
         </div>
       </div>
 
-      {/* 로그인 버튼 */}
       <button
         onClick={handleLogin}
         className={commonStyles.bottomButton}
@@ -133,7 +121,6 @@ export default function AdminLoginPage() {
         로그인
       </button>
 
-      {/* 오류 모달 */}
       {showErrorModal && (
         <div className={commonStyles.modalOverlay}>
           <div className={commonStyles.modalContent}>
@@ -143,7 +130,6 @@ export default function AdminLoginPage() {
         </div>
       )}
 
-      {/* [추가] 로그인 성공 모달 */}
       {showSuccessModal && (
         <div className={commonStyles.modalOverlay}>
           <div className={commonStyles.modalContent}>

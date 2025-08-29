@@ -3,7 +3,7 @@
   flex-direction: column;
   min-height: 100vh;
   width: 100vw;
-  background-color: #f3f4f6; /* 배경색 */
+  background-color: #ffffff; /* 배경색 */
   box-sizing: border-box;
   overflow: hidden; /* 스크롤 방지 */
 }
@@ -12,7 +12,6 @@
   display: flex;
   align-items: center;
   background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -32,7 +31,7 @@
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1rem;
-  background-color: #f3f4f6;
+  background-color: #ffffff;
   position: relative; /* 버튼 위치 조정을 위해 */
   justify-content: center;
   margin-bottom: 5rem; /* 하단 버튼 공간 확보 */

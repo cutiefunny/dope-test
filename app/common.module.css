@@ -8,7 +8,7 @@
 .inputLabel {
   display: block;
   font-size: 0.875rem; /* text-sm */
-  font-weight: 500; /* font-medium */
+  font-weight: 700; /* font-medium */
   color: #374151;
   margin-bottom: 0.5rem;
 }
@@ -38,7 +38,7 @@
 .bottomButton {
   width: calc(100% - 2rem); /* 좌우 패딩 고려 */
   padding: 1rem 0;
-  background-color: gray;
+  background-color: #2DA3E3;
   color: #ffffff;
   border: none;
   border-radius: 0.5rem;
@@ -94,7 +94,7 @@
 
 .modalButton {
   padding: 0.75rem 2rem;
-  background-color: gray;
+  background-color: #2DA3E3;
   color: #ffffff;
   border: none;
   border-radius: 0.5rem;

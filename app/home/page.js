@@ -1,61 +1,62 @@
-// app/home/page.js
 'use client';
 
 import { useRouter } from 'next/navigation';
 import styles from './home.module.css';
 import commonStyles from '../common.module.css';
-import useTestStore from '../../store/useTestStore'; // 1. Zustand 스토어 import
-import { use } from 'react';
+import useTestStore from '../../store/useTestStore';
+import Image from 'next/image';
 
 export default function HomePage() {
   const router = useRouter();
-  const setTestType = useTestStore((state) => state.setTestType); // 2. 상태를 변경하는 함수 가져오기
-  const userInfo = useTestStore((state) => state.userInfo); // 사용자 정보 가져오기
+  const setTestType = useTestStore((state) => state.setTestType);
+  const userInfo = useTestStore((state) => state.userInfo);
 
-  // 뒤로가기 아이콘 컴포넌트
   const backIcon = () => (
-    <img src="/images/back.png" alt="Back" style={{ width: '8px', height: '15px', marginLeft: '0.5rem' }} />
+    <Image src="/images/back.png" alt="Back" width={8} height={15} style={{ marginLeft: '0.5rem' }} />
   );
 
-  // 3. 검사 유형 선택 및 페이지 이동을 처리하는 함수
   const handleTestSelection = (type) => {
-    setTestType(type); // 선택한 검사 유형을 Zustand 스토어에 저장
+    setTestType(type);
     if (!userInfo) {
-      // 사용자 정보가 없으면 로그인 페이지로 이동
       router.push('/userLogin');
-    }else {
-      // 사용자 정보가 있으면 검사 유형 페이지로 이동
+    } else {
       router.push(`/test/${type}`);
     }
   };
 
   return (
     <div className={styles.container}>
-      {/* 뒤로가기 버튼 및 타이틀 */}
-      <div className={styles.header}>
+      {/* <div className={styles.header}>
         <button onClick={() => router.push('/')} className={commonStyles.backButton}>{backIcon()}</button>
-        <h2 className={styles.headerTitle}>LOGO</h2>
-      </div>
+        <h2 className={styles.headerTitle}></h2>
+      </div> */}
 
-      {/* 메인 콘텐츠 영역 */}
       <div className={styles.contentArea}>
         <p className={styles.description}>
-          원하시는 키트 유형을 선택하세요
+          원하시는 키트 유형을 선택하세요.
         </p>
         <div className={styles.buttonContainer}>
-          {/* 4. onClick 핸들러를 새로운 함수로 교체 */}
-          <button className={styles.kitButton} onClick={() => handleTestSelection('urine')}>
-            <span className={styles.buttonText}>소변으로 검사하기</span>
-            <span className={styles.arrowIcon}>
-              <img src="/images/Arrow.png" alt="right arrow" style={{ width: '20px', height: '20px' }} />
-            </span>
-          </button>
-          <button className={styles.kitButton} onClick={() => handleTestSelection('saliva')}>
-            <span className={styles.buttonText}>타액으로 검사하기</span>
-            <span className={styles.arrowIcon}>
-              <img src="/images/Arrow.png" alt="right arrow" style={{ width: '20px', height: '20px' }} />
-            </span>
-          </button>
+          {/* 타액 검사 카드 이미지 */}
+          <div
+            role="button"
+            tabIndex={0}
+            className={styles.selectionCard}
+            onClick={() => handleTestSelection('saliva')}
+            onKeyDown={(e) => e.key === 'Enter' && handleTestSelection('saliva')}
+          >
+            <Image src="/images/saliva.png" alt="타액으로 검사하기" width={400} height={110} style={{ width: '100%', height: 'auto' }} priority />
+          </div>
+
+          {/* 소변 검사 카드 이미지 */}
+          <div
+            role="button"
+            tabIndex={0}
+            className={styles.selectionCard}
+            onClick={() => handleTestSelection('urine')}
+            onKeyDown={(e) => e.key === 'Enter' && handleTestSelection('urine')}
+          >
+            <Image src="/images/urine.png" alt="소변으로 검사하기" width={400} height={110} style={{ width: '100%', height: 'auto' }} priority />
+          </div>
         </div>
       </div>
     </div>

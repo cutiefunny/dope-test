@@ -202,7 +202,7 @@ export default function UserLoginPage() {
     <div className={styles.container}>
       <div className={styles.header}>
         <button onClick={() => router.back()} className={styles.backButton}>{backIcon()}</button>
-        <h2 className={styles.headerTitle}>{!testType ? '회원인증' : '관리자'}</h2>
+        <h2 className={styles.headerTitle}>{!testType ? '회원인증' : '사용자 인증'}</h2>
       </div>
 
       {step === 1 && !testType && (
@@ -271,124 +271,67 @@ export default function UserLoginPage() {
         <div className={styles.contentArea}>
           <div className={styles.inputGroup}>
             <label htmlFor="name" className={styles.inputLabel}>이름</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={userInfo.name}
-              onChange={handleUserInfoChange}
-              placeholder="홍길동"
-              className={styles.inputField}
-            />
+            <input type="text" id="name" name="name" value={userInfo.name} onChange={handleUserInfoChange} placeholder="이름을 입력해주세요." className={styles.inputField}/>
           </div>
-
           <div className={styles.inputGroup}>
             <label htmlFor="dob" className={styles.inputLabel}>생년월일</label>
-            <input
-              type="text"
-              id="dob"
-              name="dob"
-              value={userInfo.dob}
-              onChange={handleUserInfoChange}
-              placeholder="YYYYMMDD"
-              className={styles.inputField}
-            />
+            <input type="text" id="dob" name="dob" value={userInfo.dob} onChange={handleUserInfoChange} placeholder="생년월일을 입력해주세요." className={styles.inputField}/>
           </div>
-
-          <div className={styles.rowGroup}>
-            <div className={styles.inputGroupHalf}>
-              <label htmlFor="gender" className={styles.inputLabel}>성별</label>
-              <select
-                id="gender"
-                name="gender"
-                value={userInfo.gender}
-                onChange={handleUserInfoChange}
-                className={styles.selectField}
-              >
-                <option value="">선택</option>
-                <option value="male">남자</option>
-                <option value="female">여자</option>
-              </select>
-            </div>
-            <div className={styles.inputGroupHalf}>
-              <label htmlFor="region" className={styles.inputLabel}>지역</label>
-              <select
-                id="region"
-                name="region"
-                value={userInfo.region}
-                onChange={handleUserInfoChange}
-                className={styles.selectField}
-              >
-                <option value="">지역을 선택하세요</option>
-                <option value="서울">서울</option>
-                <option value="경기">경기</option>
-                <option value="충북">충북</option>
-                <option value="충남">충남</option>
-                <option value="강원">강원</option>
-                <option value="전북">전북</option>
-                <option value="전남">전남</option>
-                <option value="경북">경북</option>
-                <option value="경남">경남</option>
-                <option value="제주">제주</option>
-              </select>
-            </div>
-          </div>
-
           <div className={styles.inputGroup}>
-            <label htmlFor="phoneNumber" className={styles.inputLabel}>전화번호</label>
-            <div className={styles.phoneInputContainer}>
-              <input
-                type="tel"
-                id="phoneNumber"
-                name="phoneNumber"
-                value={userInfo.phoneNumber}
-                onChange={handleUserInfoChange}
-                placeholder="01012345678"
-                className={styles.inputField}
-              />
-              <button
-                  onClick={handleVerificationRequest}
-                  className={styles.verificationRequestButton}
-                  disabled={isVerificationRequested && verificationTimer > 0}
-                >
-                  {isVerificationRequested && verificationTimer > 0 ? '재전송' : '인증요청'}
-              </button>
-            </div>
+             <label htmlFor="phoneNumber" className={styles.inputLabel}>전화번호</label>
+             <div className={styles.phoneInputContainer}>
+               <input type="tel" id="phoneNumber" name="phoneNumber" value={userInfo.phoneNumber} onChange={handleUserInfoChange} placeholder="핸드폰 번호를 입력해주세요." className={styles.inputField}/>
+               <button onClick={handleVerificationRequest} className={styles.verificationRequestButton} disabled={isVerificationRequested && verificationTimer > 0}>
+                   {isVerificationRequested && verificationTimer > 0 ? '재전송' : '인증요청'}
+               </button>
+             </div>
           </div>
-
           {isVerificationRequested && (
             <div className={styles.inputGroup}>
               <div className={styles.verificationInputContainer}>
-                <input
-                  type="text"
-                  id="verificationCode"
-                  name="verificationCode"
-                  value={userInfo.verificationCode}
-                  onChange={handleUserInfoChange}
-                  placeholder="인증번호를 입력해주세요"
-                  className={`${styles.inputField} ${!isVerificationSuccess ? styles.inputFieldWrong : ''}`}
-                />
+                <input type="text" id="verificationCode" name="verificationCode" value={userInfo.verificationCode} onChange={handleUserInfoChange} placeholder="인증번호를 입력해주세요" className={`${styles.inputField} ${!isVerificationSuccess ? styles.inputFieldWrong : ''}`}/>
                 <span className={styles.timer}>{formatTime(verificationTimer)}</span>
-                <button
-                  onClick={handleVerificationConfirm}
-                  className={styles.verificationConfirmButton}
-                >
-                  확인
-                </button>
+                <button onClick={handleVerificationConfirm} className={styles.verificationConfirmButton}>확인</button>
               </div>
-              {verificationMessage && (
-                <p className={isVerificationSuccess ? styles.successMessage : styles.errorMessage}>
-                  {verificationMessage}
-                </p>
-              )}
+              {verificationMessage && (<p className={isVerificationSuccess ? styles.successMessage : styles.errorMessage}>{verificationMessage}</p>)}
             </div>
           )}
-
-          <button
-            onClick={handleComplete}
-            className={`${styles.bottomButton} ${!isUserFormComplete ? styles.disabledButton : ''}`}
-            disabled={!isUserFormComplete}
-          >
+          <div className={styles.inputGroup}>
+            <label className={styles.inputLabel}>성별</label>
+            <div className={styles.genderButtonContainer}>
+              <button
+                type="button"
+                className={`${styles.genderButton} ${userInfo.gender === 'male' ? styles.genderButtonActive : ''}`}
+                onClick={() => setUserInfo((prev) => ({ ...prev, gender: 'male' }))}
+              >
+                남자
+              </button>
+              <button
+                type="button"
+                className={`${styles.genderButton} ${userInfo.gender === 'female' ? styles.genderButtonActive : ''}`}
+                onClick={() => setUserInfo((prev) => ({ ...prev, gender: 'female' }))}
+              >
+                여자
+              </button>
+            </div>
+          </div>
+          <div className={styles.inputGroup}>
+            <label htmlFor="region" className={styles.inputLabel}>지역</label>
+            <select id="region" name="region" value={userInfo.region} onChange={handleUserInfoChange} className={styles.selectField}>
+              <option value="">지역을 선택하세요</option>
+              <option value="서울">서울</option>
+              <option value="경기">경기</option>
+              <option value="충북">충북</option>
+              <option value="충남">충남</option>
+              <option value="강원">강원</option>
+              <option value="전북">전북</option>
+              <option value="전남">전남</option>
+              <option value="경북">경북</option>
+              <option value="경남">경남</option>
+              <option value="제주">제주</option>
+            </select>
+          </div>
+          <button onClick={handleComplete} className={`${styles.bottomButton} ${!isUserFormComplete ? styles.disabledButton : ''}`} disabled={!isUserFormComplete}>
             완료
           </button>
         </div>
@@ -396,91 +339,55 @@ export default function UserLoginPage() {
 
       {step === 1 && testType && (
          <div className={styles.contentArea}>
+          <p className={styles.pageSubtitle}>사용자 정보를 입력해주세요.</p>
           <div className={styles.inputGroup}>
             <label htmlFor="name" className={styles.inputLabel}>이름</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={userInfo.name}
-              onChange={handleUserInfoChange}
-              placeholder="홍길동"
-              className={styles.inputField}
-            />
+            <input type="text" id="name" name="name" value={userInfo.name} onChange={handleUserInfoChange} placeholder="이름을 입력해주세요." className={styles.inputField}/>
           </div>
-
           <div className={styles.inputGroup}>
             <label htmlFor="dob" className={styles.inputLabel}>생년월일</label>
-            <input
-              type="text"
-              id="dob"
-              name="dob"
-              value={userInfo.dob}
-              onChange={handleUserInfoChange}
-              placeholder="YYYYMMDD"
-              className={styles.inputField}
-            />
+            <input type="text" id="dob" name="dob" value={userInfo.dob} onChange={handleUserInfoChange} placeholder="생년월일을 입력해주세요." className={styles.inputField}/>
           </div>
-
           <div className={styles.inputGroup}>
             <label htmlFor="phoneNumber" className={styles.inputLabel}>전화번호</label>
-            <div className={styles.phoneInputContainer}>
-              <input
-                type="tel"
-                id="phoneNumber"
-                name="phoneNumber"
-                value={userInfo.phoneNumber}
-                onChange={handleUserInfoChange}
-                placeholder="01012345678"
-                className={styles.inputField}
-              />
+            <input type="tel" id="phoneNumber" name="phoneNumber" value={userInfo.phoneNumber} onChange={handleUserInfoChange} placeholder="핸드폰 번호를 입력해주세요." className={styles.inputField}/>
+          </div>
+          <div className={styles.inputGroup}>
+            <label className={styles.inputLabel}>성별</label>
+            <div className={styles.genderButtonContainer}>
+              <button
+                type="button"
+                className={`${styles.genderButton} ${userInfo.gender === 'male' ? styles.genderButtonActive : ''}`}
+                onClick={() => setUserInfo((prev) => ({ ...prev, gender: 'male' }))}
+              >
+                남자
+              </button>
+              <button
+                type="button"
+                className={`${styles.genderButton} ${userInfo.gender === 'female' ? styles.genderButtonActive : ''}`}
+                onClick={() => setUserInfo((prev) => ({ ...prev, gender: 'female' }))}
+              >
+                여자
+              </button>
             </div>
           </div>
-
-          <div className={styles.rowGroup}>
-            <div className={styles.inputGroupHalf}>
-              <label htmlFor="gender" className={styles.inputLabel}>성별</label>
-              <select
-                id="gender"
-                name="gender"
-                value={userInfo.gender}
-                onChange={handleUserInfoChange}
-                className={styles.selectField}
-              >
-                <option value="">선택</option>
-                <option value="male">남자</option>
-                <option value="female">여자</option>
-              </select>
-            </div>
-            <div className={styles.inputGroupHalf}>
-              <label htmlFor="region" className={styles.inputLabel}>지역</label>
-              <select
-                id="region"
-                name="region"
-                value={userInfo.region}
-                onChange={handleUserInfoChange}
-                className={styles.selectField}
-              >
-                <option value="">지역을 선택하세요</option>
-                <option value="서울">서울</option>
-                <option value="경기">경기</option>
-                <option value="충북">충북</option>
-                <option value="충남">충남</option>
-                <option value="강원">강원</option>
-                <option value="전북">전북</option>
-                <option value="전남">전남</option>
-                <option value="경북">경북</option>
-                <option value="경남">경남</option>
-                <option value="제주">제주</option>
-              </select>
-            </div>
+          <div className={styles.inputGroup}>
+            <label htmlFor="region" className={styles.inputLabel}>지역</label>
+            <select id="region" name="region" value={userInfo.region} onChange={handleUserInfoChange} className={styles.selectField}>
+              <option value="">지역을 선택하세요</option>
+              <option value="서울">서울</option>
+              <option value="경기">경기</option>
+              <option value="충북">충북</option>
+              <option value="충남">충남</option>
+              <option value="강원">강원</option>
+              <option value="전북">전북</option>
+              <option value="전남">전남</option>
+              <option value="경북">경북</option>
+              <option value="경남">경남</option>
+              <option value="제주">제주</option>
+            </select>
           </div>
-
-          <button
-            onClick={handleComplete}
-            className={`${styles.bottomButton} ${!isAdminFormComplete ? styles.disabledButton : ''}`}
-            disabled={!isAdminFormComplete}
-          >
+          <button onClick={handleComplete} className={`${styles.bottomButton} ${!isAdminFormComplete ? styles.disabledButton : ''}`} disabled={!isAdminFormComplete}>
             완료
           </button>
         </div>
@@ -489,7 +396,9 @@ export default function UserLoginPage() {
       {showVerificationModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
-            <p className={styles.modalMessage}>{testType ? <span>사용자 </span> : <span>본인</span>} 인증이 완료되었습니다!</p>
+            {/* --- ▼ 모달 텍스트 수정 ▼ --- */}
+            <p className={styles.modalMessage}>사용자 인증이 완료되었습니다.</p>
+            {/* --- ▲ 모달 텍스트 수정 ▲ --- */}
             <button onClick={handleModalConfirm} className={styles.modalButton}>확인</button>
           </div>
         </div>

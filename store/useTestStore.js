@@ -10,12 +10,21 @@ const useTestStore = create((set) => ({
   setFrontImage: (image) => set({ frontImage: image }),
   backImage: null, // 뒷면 이미지 데이터
   setBackImage: (image) => set({ backImage: image }),
+  
+  // --- ▼ 재촬영 횟수 관련 상태 추가 ▼ ---
+  retakeChances: 3, // 재촬영 기회
+  decrementRetakeChances: () => set((state) => ({ 
+    retakeChances: state.retakeChances > 0 ? state.retakeChances - 1 : 0 
+  })),
+  // --- ▲ 재촬영 횟수 관련 상태 추가 ▲ ---
+
   resetStore: () => set({
     testType: '',
     userInfo: null,
     frontImage: null,
-    backImage: null
-  }), // 스토어 초기화 함수
+    backImage: null,
+    retakeChances: 3, // 스토어 초기화 시 재촬영 기회도 초기화
+  }),
 }));
 
 export default useTestStore;

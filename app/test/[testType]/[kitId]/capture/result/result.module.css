@@ -2,16 +2,22 @@
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh; /* height를 min-height로 변경하여 내용이 길어져도 스크롤되도록 함 */
   width: 100vw;
-  background-color: #ffffff;
+  background-color: #f0f0f0; /* 배경색 변경 */
 }
 
 .header {
-  text-align: center;
+  display: flex; /* 로고 대신 타이틀 중앙 정렬을 위해 flex 사용 */
+  justify-content: center;
+  align-items: center;
   padding: 1rem;
-  font-size: 1.5rem;
-  font-weight: bold;
+}
+
+.headerTitle {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600; /* font-semibold */
+  color: #1f2937;
 }
 
 .mainContent {
@@ -19,21 +25,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem;
-}
+  padding: 1.5rem;
+  overflow-y: auto;
+ }
 
-.mainContent h2 {
-  font-size: 1.8rem;
-  font-weight: bold;
-  margin-bottom: 2rem;
-}
+/* 요약 카드 스타일은 더 이상 사용되지 않으므로 삭제 */
 
 .resultContainer {
-  background-color: #f0f0f0;
   width: 100%;
   max-width: 400px;
-  padding: 1.5rem;
-  border-radius: 10px;
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  border: none;
 }
 
 .resultList {
@@ -44,60 +47,128 @@
 
 .resultItem {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem; /* 좌우 패딩 증가 */
+  border-radius: 5px;
+  /* margin-bottom: 5px; */
 }
 
 .resultItem:last-child {
-  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.hexagonIcon {
+  width: 24px;
+  height: 24px;
+  margin-right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #F5F6F7;
+  padding: 0.3rem;
+  border-radius: 5px;
 }
 
 .drugName {
-  width: 100px;
-  height: 40px;
-  background-color: #ffffff;
-  border-radius: 5px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: 500;
+  flex-grow: 1; /* 이름이 공간을 채우도록 */
+  font-weight: 500; /* Medium */
+  color: #374151;
+  font-size: 1rem;
 }
 
 .resultText {
-  font-size: 1.2rem;
-  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem; /* 텍스트와 아이콘 사이 간격 */
+  font-size: 1rem;
+  font-weight: 600; /* Semibold */
 }
 
-.positive {
-  color: #ff0000;
-}
+.positive { color: #ef4444; } /* 빨간색 */
+.negative { color: #3b82f6; } /* 파란색 */
+.invalid { color: #6b7280; } /* 회색 */
 
-.negative {
-  color: #0000ff;
-}
-
-.invalid {
-  color: #333333;
+.checkIcon {
+  margin-left: 0.25rem;
 }
 
 .footer {
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column; /* 세로 정렬 */
+  align-items: center;
+  border-top: 1px solid #e5e7eb;
+  gap: 0.75rem; /* 요소들 간의 간격 */
+}
+
+.retakeChancesText {
+  font-size: 0.875rem; /* text-sm */
+  color: #6b7280;
+  margin-bottom: 0.5rem; /* 버튼과의 간격 */
+}
+
+.retakeButton {
+  width: 100%;
+  max-width: 400px; /* 버튼 최대 너비 */
+  border: none;
+  border-radius: 0.5rem;
+  padding: 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #2DA3E3;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.retakeButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  max-width: 320px;
+  width: 90%;
   text-align: center;
 }
 
-.exitButton {
-  background-color: #d9d9d9;
-  border: none;
-  border-radius: 20px;
-  padding: 0.8rem 2.5rem;
+.modalMessage {
   font-size: 1rem;
   font-weight: 500;
-  cursor: pointer;
-  margin-bottom: 1rem;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
 }
 
-.contactText {
-  font-size: 0.9rem;
-  color: #888888;
+.modalButton {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #2DA3E3;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
 }

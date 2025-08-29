@@ -169,7 +169,8 @@ export default function CapturePage() {
       const context = canvas.getContext('2d');
       context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
       
-      const imageDataUrl = canvas.toDataURL('image/png');
+      // const imageDataUrl = canvas.toDataURL('image/png');
+      const imageDataUrl = "/images/dope-test1.jpg" // 테스트용
       
       // V-CHECK(13) 키트인 경우 (kitId가 3)
       if (kitId === '3') {

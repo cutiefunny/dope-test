@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import styles from './users.module.css';
 import { db } from '../../../lib/firebase/clientApp';
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import Image from 'next/image';
 
 export default function UsersPage() {
   const router = useRouter();
@@ -15,40 +16,33 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [imageModalSrc, setImageModalSrc] = useState(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const usersPerPage = 10;
 
   useEffect(() => {
     const fetchTestResults = async () => {
       try {
-        // 'testResults' 컬렉션에서 데이터를 'createdAt' 필드 기준 내림차순으로 정렬하여 가져옵니다.
         const q = query(collection(db, "testResults"), orderBy("createdAt", "desc"));
         const querySnapshot = await getDocs(q);
         const resultsData = querySnapshot.docs.map(doc => {
           const data = doc.data();
-
-          // --- ⬇️ 요약 결과 로직 수정 ⬇️ ---
-          let summary = '음성'; // 기본값
+          let summary = '음성';
           if (data.testResult && Array.isArray(data.testResult) && data.testResult.length > 0) {
-            // 모든 결과가 '무효'인지 확인
             const isAllInvalid = data.testResult.every(r => r.result === '무효');
             if (isAllInvalid) {
               summary = '무효';
             } else {
-              // '양성'이 하나라도 있는지 확인
               const hasPositive = data.testResult.some(r => r.result === '양성');
               if (hasPositive) {
                 summary = '양성';
               }
             }
           }
-          // --- ⬆️ 요약 결과 로직 수정 ⬆️ ---
-          
           return {
             id: doc.id,
             ...data,
-            // Firestore 타임스탬프를 문자열로 변환합니다.
             registrationDate: data.createdAt?.toDate().toLocaleDateString('ko-KR') || 'N/A',
-            // 요약된 검사 결과를 추가합니다.
             summaryResult: summary,
           };
         });
@@ -64,15 +58,13 @@ export default function UsersPage() {
   }, []);
   
   useEffect(() => {
-    // 이름 또는 전화번호로 검색합니다.
     const results = testResults.filter(result =>
       (result.name && result.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (result.phoneNumber && result.phoneNumber.includes(searchTerm))
     );
     setFilteredResults(results);
-    setCurrentPage(1); // 검색 시 첫 페이지로 이동
+    setCurrentPage(1);
   }, [searchTerm, testResults]);
-
 
   const handleViewDetails = (result) => {
     setSelectedResult(result);
@@ -83,8 +75,17 @@ export default function UsersPage() {
     setIsModalOpen(false);
     setSelectedResult(null);
   };
+
+  const handleImageClick = (src) => {
+    setImageModalSrc(src);
+    setIsImageModalOpen(true);
+  };
+
+  const handleCloseImageModal = () => {
+    setIsImageModalOpen(false);
+    setImageModalSrc(null);
+  };
   
-  // 페이지네이션 관련
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentResults = filteredResults.slice(indexOfFirstUser, indexOfLastUser);
@@ -94,6 +95,22 @@ export default function UsersPage() {
     if (pageNumber > 0 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
     }
+  };
+
+  const renderPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPageButtons = 10;
+    const pageGroup = Math.ceil(currentPage / maxPageButtons);
+    let startPage = (pageGroup - 1) * maxPageButtons + 1;
+    let endPage = Math.min(startPage + maxPageButtons - 1, totalPages);
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+    return pageNumbers.map(number => (
+      <button key={number} onClick={() => paginate(number)} className={currentPage === number ? styles.activePage : ''}>
+        {number}
+      </button>
+    ));
   };
 
   if (loading) {
@@ -135,7 +152,6 @@ export default function UsersPage() {
               <td>{result.phoneNumber}</td>
               <td>{result.gender === 'male' ? '남자' : '여자'}</td>
               <td>{result.region}</td>
-              {/* --- ⬇️ 검사 결과 스타일 수정 ⬇️ --- */}
               <td style={{ 
                 color: result.summaryResult === '양성' 
                   ? 'red' 
@@ -145,7 +161,6 @@ export default function UsersPage() {
               }}>
                 {result.summaryResult}
               </td>
-              {/* --- ⬆️ 검사 결과 스타일 수정 ⬆️ --- */}
               <td>{result.testType}</td>
               <td>{result.registrationDate}</td>
               <td><button onClick={() => handleViewDetails(result)} className={styles.viewButton}>보기</button></td>
@@ -154,14 +169,9 @@ export default function UsersPage() {
         </tbody>
       </table>
 
-      {/* Pagination */}
       <div className={styles.pagination}>
         <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1}>&lt;</button>
-        {[...Array(totalPages).keys()].map(number => (
-          <button key={number + 1} onClick={() => paginate(number + 1)} className={currentPage === number + 1 ? styles.activePage : ''}>
-            {number + 1}
-          </button>
-        ))}
+        {renderPageNumbers()}
         <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages}>&gt;</button>
       </div>
 
@@ -181,9 +191,33 @@ export default function UsersPage() {
                 <div className={styles.detailRow}><label>키트ID</label><input type="text" readOnly defaultValue={selectedResult.kitId} /></div>
               </div>
               <div className={styles.rightPanel}>
-                <div className={styles.imageUpload}>+</div>
+                <div className={styles.imageContainer}>
+                  {selectedResult.capturedImage ? (
+                    <Image 
+                      src={selectedResult.capturedImage}
+                      alt="촬영된 키트 이미지 (앞면)"
+                      width={150}
+                      height={150}
+                      className={styles.uploadedImage}
+                      style={{ objectFit: 'contain', cursor: 'pointer' }}
+                      onClick={() => handleImageClick(selectedResult.capturedImage)}
+                    />
+                  ) : (
+                    <div className={styles.imageUpload}>+</div>
+                  )}
+                  {selectedResult.capturedImageBack && (
+                     <Image 
+                      src={selectedResult.capturedImageBack}
+                      alt="촬영된 키트 이미지 (뒷면)"
+                      width={150}
+                      height={150}
+                      className={styles.uploadedImage}
+                      style={{ objectFit: 'contain', cursor: 'pointer' }}
+                      onClick={() => handleImageClick(selectedResult.capturedImageBack)}
+                    />
+                  )}
+                </div>
                 <div className={styles.detailRow}><label>생년월일</label><input type="text" readOnly defaultValue={selectedResult.dob} /></div>
-                {/* 상세 검사 결과를 모두 표시합니다. */}
                 <div className={styles.detailRow}>
                     <label>검사결과</label>
                     <div className={styles.resultDetails}>
@@ -207,6 +241,16 @@ export default function UsersPage() {
           </div>
         </div>
       )}
+
+      {isImageModalOpen && imageModalSrc && (
+        <div className={styles.imageModalOverlay} onClick={handleCloseImageModal}>
+            <div className={styles.imageModalContent} onClick={(e) => e.stopPropagation()}>
+                <button onClick={handleCloseImageModal} className={styles.imageModalCloseButton}>×</button>
+                <img src={imageModalSrc} alt="확대된 이미지" className={styles.imageModal} />
+            </div>
+        </div>
+      )}
     </div>
   );
 }
+

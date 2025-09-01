@@ -6,6 +6,7 @@ import styles from './admin.module.css';
 import { useRouter } from 'next/navigation';
 import { auth } from '../../lib/firebase/clientApp';
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import Image from 'next/image';
 
 export default function AdminRootPageAsLogin() {
   const [email, setEmail] = useState('');
@@ -52,29 +53,36 @@ export default function AdminRootPageAsLogin() {
 
   return (
     <div className={styles.loginContainer}>
-      <h1 className={styles.loginLogo}>LOGO</h1>
-      <div className={styles.loginForm}>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="아이디"
-          className={styles.loginInput}
+        <Image 
+            src="/images/logo1.png" 
+            alt="HealthyMed Logo" 
+            width={300} 
+            height={200} 
+            className={styles.loginLogo}
+            priority
         />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="비밀번호"
-          className={styles.loginInput}
-        />
-         {errorMessage && <p className={styles.errorMessage}>{errorMessage}</p>}
-        <button onClick={handleLogin} className={styles.loginButton}>
-          로그인
-        </button>
-      </div>
+        <div className={styles.loginForm}>
+            <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="아이디"
+                className={styles.loginInput}
+            />
+            <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="비밀번호"
+                className={styles.loginInput}
+            />
+            {errorMessage && <p className={styles.errorMessage}>{errorMessage}</p>}
+            <button onClick={handleLogin} className={styles.loginButton}>
+                로그인
+            </button>
+        </div>
     </div>
   );
 }

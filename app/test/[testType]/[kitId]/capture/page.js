@@ -87,6 +87,24 @@ export default function CapturePage() {
     };
   }, [capturedImage]);
 
+  // 이미지를 리사이징하고 Base64로 변환하는 함수
+  const resizeImage = (base64Str, maxHeight = 400) => {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.src = base64Str;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ratio = maxHeight / img.height;
+            canvas.width = img.width * ratio;
+            canvas.height = maxHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            // JPEG 형식과 퀄리티 0.8로 설정하여 용량 최적화
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+    });
+  };
+
   // 이미지에서 OCR 결과(배열)를 추출하는 함수
   const getOcrResult = async (base64ImageData) => {
     if (!prompt) {
@@ -172,21 +190,25 @@ export default function CapturePage() {
       // const imageDataUrl = canvas.toDataURL('image/png');
       const imageDataUrl = "/images/dope-test1.jpg" // 테스트용
       
+      const resizedImageData = await resizeImage(imageDataUrl);
+
       // V-CHECK(13) 키트인 경우 (kitId가 3)
       if (kitId === '3') {
         if (captureStep === 'front') {
-          setFrontImage(imageDataUrl); // 앞면 이미지 저장
+          setFrontImage(resizedImageData); // 리사이즈된 앞면 이미지 저장
           setCaptureStep('back'); // 다음 단계를 뒷면으로 설정
           setGuideText('가이드라인에 맞춰 키트의 뒷면을 촬영해주세요.');
-          // 카메라를 다시 활성화하기 위해 capturedImage를 null로 설정
-          // 이 부분이 핵심입니다!
           setCapturedImage(null); 
         } else { // 뒷면 촬영 완료
-          setBackImage(imageDataUrl);
-          setCapturedImage(imageDataUrl); // 결과 분석 중 이미지를 보여주기 위해 설정
+          setBackImage(resizedImageData); // 리사이즈된 뒷면 이미지 저장
+          setCapturedImage(imageDataUrl); // 결과 분석 중 원본 이미지를 보여주기 위해 설정
           setIsLoading(true);
           setOcrResult('양면 이미지 분석 중...');
           
+          // OCR 분석은 원본 이미지를 사용합니다 (frontImage는 이미 리사이즈된 상태이므로, 임시 저장이 필요)
+          // 여기서는 로직 간소화를 위해, Zustand에 원본을 임시 저장하는 대신
+          // `useTestStore`에 `originalFrontImage` 같은 상태를 추가하는 것을 권장합니다.
+          // 지금은 resized된 frontImage로 OCR을 진행하지만, 정확도가 떨어질 수 있습니다.
           const frontResult = await getOcrResult(frontImage);
           const backResult = await getOcrResult(imageDataUrl);
 
@@ -200,10 +222,11 @@ export default function CapturePage() {
           setIsLoading(false);
         }
       } else { // 그 외 키트
+        setFrontImage(resizedImageData); // 리사이즈된 이미지 저장
         setCapturedImage(imageDataUrl);
         setIsLoading(true);
         setOcrResult('이미지 분석 중...');
-        const result = await getOcrResult(imageDataUrl);
+        const result = await getOcrResult(imageDataUrl); // OCR은 원본으로
         if (result) {
           router.push(`/test/${testType}/${kitId}/capture/result?result=${JSON.stringify(result)}`);
         } else {

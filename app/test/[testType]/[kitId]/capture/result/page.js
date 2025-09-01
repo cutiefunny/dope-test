@@ -57,6 +57,8 @@ export default function ResultPage() {
   
   // --- ▼ [수정] Zustand 스토어 상태를 개별적으로 구독 ▼ ---
   const userInfo = useTestStore((state) => state.userInfo);
+  const frontImage = useTestStore((state) => state.frontImage);
+  const backImage = useTestStore((state) => state.backImage);
   const retakeChances = useTestStore((state) => state.retakeChances);
   const decrementRetakeChances = useTestStore((state) => state.decrementRetakeChances);
   const resetStore = useTestStore((state) => state.resetStore);
@@ -98,6 +100,9 @@ export default function ResultPage() {
                 result: getResultText(result).text,
             })),
             createdAt: new Date(),
+            // 리사이징된 Base64 이미지 추가
+            capturedImage: frontImage || null,
+            capturedImageBack: backImage || null,
         };
         await addDoc(collection(db, "testResults"), testResultData);
     } catch (error) {

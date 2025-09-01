@@ -44,7 +44,7 @@ export default function AdminLayout({ children }) {
     <div className={styles.layoutContainer}>
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          LOGO
+          <img src="/images/logo2.png" alt="HealthyMed Logo" style={{ width: '100%', height: 'auto' }} />
         </div>
         <nav className={styles.sidebarNav}>
           <a 

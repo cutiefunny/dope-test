@@ -11,7 +11,7 @@
 
 .sidebar {
   width: 220px;
-  background-color: #e5e7eb;
+  background-color: #ff8fda;
   display: flex;
   flex-direction: column;
   padding: 1.5rem 0;
@@ -33,27 +33,25 @@
 
 .sidebarNav a {
   padding: 0.75rem 1.5rem;
-  color: #374151;
+  color: white;
   text-decoration: none;
   font-weight: 500;
   transition: background-color 0.2s;
 }
 
 .sidebarNav a:hover {
-  background-color: #d1d5db;
+  background-color: #db6dc3;
 }
 
 .sidebarNav a.activeLink {
-  background-color: #ffffff;
-  color: #111827;
-  font-weight: 600;
+  color: white;
+  font-weight: 500;
 }
 
 .mainContent {
   flex-grow: 1;
   padding: 2rem;
   overflow-y: auto;
-  background-color: #ffffff;
 }
 
 /* New Login Page Styles for /admin */
@@ -93,14 +91,15 @@
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;
   font-size: 1rem;
-  background-color: #f9fafb;
+  background-color: #2DA3E3;
   cursor: pointer;
   font-weight: 500;
   margin-top: 0.5rem;
+  color: white;
 }
 
 .loginButton:hover {
-  background-color: #f3f4f6;
+  background-color: #2380b3;
 }
 
 .errorMessage {

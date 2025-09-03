@@ -14,7 +14,7 @@ const drugMap = {
   urine: {
     '1': ['엑스터시', '아편', '필로폰', '코카인', '케타민', '대마'],
     '2': ['암페타민', '부프레노르핀', '엑스터시', '필로폰', '모르핀', '코카인', '대마'],
-    '3': ['아편', '엑스터시', '코티닌', '펜타닐', '코카인', '벤조디아제핀', '암페타민', '케타민', '부프레노르핀', 'LSD', '필로폰', '대마']
+    '3': ['아편', '엑스터시', '코티닌', '펜타닐', '코카인', '벤조디아제핀', '암페타민', '케타민', '부프레노르핀', 'LSD', '필로폰', '대마', '메타돈']
   },
   saliva: {
     '1': ['아편', '케타민', '엑스터시', '코카인', '필로폰', '대마'],
@@ -38,6 +38,7 @@ const drugColorMap = {
   '케타민': '#43E2A0',
   '모르핀': '#8543E2',
   '코티닌': '#9CA3AF', 
+  '메타돈': '#9CA3AF',
   '기타': '#9CA3AF', 
 };
 
@@ -73,10 +74,16 @@ export default function ResultPage() {
     if (!resultStr) return;
 
     try {
-      const parsedResult = JSON.parse(resultStr);
+      let parsedResult = JSON.parse(resultStr);
+      const currentDrugNames = drugMap[testType]?.[kitId];
+
+      // V-CHECK(13) 키트 (kitId: 3)는 양면 촬영으로 결과가 2배로 나올 수 있으므로 약물 수에 맞춰 잘라줌
+      if (testType === 'urine' && kitId === '3' && currentDrugNames && parsedResult.length > currentDrugNames.length) {
+        parsedResult = parsedResult.slice(0, currentDrugNames.length);
+      }
+
       setResultArray(parsedResult);
       
-      const currentDrugNames = drugMap[testType]?.[kitId];
       if (currentDrugNames) {
         setDrugNames(currentDrugNames);
         
@@ -195,3 +202,4 @@ export default function ResultPage() {
     </div>
   );
 }
+

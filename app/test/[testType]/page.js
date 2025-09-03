@@ -14,7 +14,7 @@ const kitData = {
   ],
   saliva: [
     { id: 1, name: 'V-CHECK(6)', image: '/images/kit1.png' },
-    { id: 2, name: 'V-CHECK(12)', image: '/images/kit1.png' },
+    { id: 2, name: 'V-CHECK(10)', image: '/images/kit1.png' },
   ],
 };
 

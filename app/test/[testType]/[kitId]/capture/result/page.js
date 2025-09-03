@@ -56,18 +56,16 @@ export default function ResultPage() {
   const searchParams = useSearchParams();
   const { testType, kitId } = params;
   
-  // --- ▼ [수정] Zustand 스토어 상태를 개별적으로 구독 ▼ ---
   const userInfo = useTestStore((state) => state.userInfo);
   const frontImage = useTestStore((state) => state.frontImage);
   const backImage = useTestStore((state) => state.backImage);
   const retakeChances = useTestStore((state) => state.retakeChances);
   const decrementRetakeChances = useTestStore((state) => state.decrementRetakeChances);
   const resetStore = useTestStore((state) => state.resetStore);
-  // --- ▲ [수정] Zustand 스토어 상태를 개별적으로 구독 ▲ ---
 
   const [resultArray, setResultArray] = useState([]);
   const [drugNames, setDrugNames] = useState([]);
-  const [showRetakeLimitModal, setShowRetakeLimitModal] = useState(false);
+  const [showExitConfirmModal, setShowExitConfirmModal] = useState(false);
 
   useEffect(() => {
     const resultStr = searchParams.get('result');
@@ -77,7 +75,6 @@ export default function ResultPage() {
       let parsedResult = JSON.parse(resultStr);
       const currentDrugNames = drugMap[testType]?.[kitId];
 
-      // V-CHECK(13) 키트 (kitId: 3)는 양면 촬영으로 결과가 2배로 나올 수 있으므로 약물 수에 맞춰 잘라줌
       if (testType === 'urine' && kitId === '3' && currentDrugNames && parsedResult.length > currentDrugNames.length) {
         parsedResult = parsedResult.slice(0, currentDrugNames.length);
       }
@@ -87,7 +84,6 @@ export default function ResultPage() {
       if (currentDrugNames) {
         setDrugNames(currentDrugNames);
         
-        // 스토어에서 직접 최신 userInfo를 가져와 사용합니다.
         const currentUserInfo = useTestStore.getState().userInfo;
         if (currentUserInfo && useTestStore.getState().retakeChances === 3) {
           saveTestResult(currentUserInfo, parsedResult, currentDrugNames);
@@ -107,7 +103,6 @@ export default function ResultPage() {
                 result: getResultText(result).text,
             })),
             createdAt: new Date(),
-            // 리사이징된 Base64 이미지 추가
             capturedImage: frontImage || null,
             capturedImageBack: backImage || null,
         };
@@ -131,10 +126,6 @@ export default function ResultPage() {
   const handleExitClick = () => {
     resetStore();
     router.push('/home');
-  };
-
-  const handleExitToKitPage = () => {
-    router.push(`/test/${testType}/${kitId}`);
   };
 
   return (
@@ -175,31 +166,33 @@ export default function ResultPage() {
             <button onClick={handleRetakeClick} className={styles.retakeButton}>
               재촬영
             </button>
-            <button onClick={handleExitToKitPage} className={styles.exitButton}>
+            <button onClick={() => setShowExitConfirmModal(true)} className={styles.exitButton}>
               나가기
             </button>
           </>
         ) : (
           <>
             <p className={styles.retakeChancesText}>재촬영 기회를 모두 사용했습니다.</p>
-            <button onClick={() => setShowRetakeLimitModal(true)} className={styles.retakeButton}>
+            <button onClick={() => setShowExitConfirmModal(true)} className={styles.retakeButton}>
               나가기
             </button>
           </>
         )}
       </footer>
 
-      {showRetakeLimitModal && (
+      {showExitConfirmModal && (
         <div className={styles.modalOverlay}>
             <div className={styles.modalContent}>
                 <p className={styles.modalMessage}>
-                    재촬영은 3번까지만 가능합니다.<br/>관리자에게 문의해주세요.
+                    검사완료되었습니다.<br/>홈으로 나가시겠습니까?
                 </p>
-                <button onClick={handleExitClick} className={styles.modalButton}>나가기</button>
+                <div className={styles.modalButtonGroup}>
+                    <button onClick={() => setShowExitConfirmModal(false)} className={styles.cancelButton}>취소</button>
+                    <button onClick={handleExitClick} className={styles.modalButton}>나가기</button>
+                </div>
             </div>
         </div>
       )}
     </div>
   );
 }
-

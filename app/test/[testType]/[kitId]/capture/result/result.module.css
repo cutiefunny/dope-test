@@ -140,10 +140,6 @@
   transition: background-color 0.2s;
 }
 
-/* .exitButton:hover {
-  background-color: #5a6268;
-} */
-
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -179,10 +175,28 @@
   line-height: 1.5;
 }
 
-.modalButton {
+.modalButtonGroup {
+  display: flex;
+  gap: 0.75rem;
   width: 100%;
+}
+
+.modalButton {
+  flex: 1;
   padding: 0.75rem;
   background-color: #2DA3E3;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancelButton {
+  flex: 1;
+  padding: 0.75rem;
+  background-color: #6c757d;
   color: #ffffff;
   border: none;
   border-radius: 0.5rem;

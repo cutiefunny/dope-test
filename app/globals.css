@@ -2,7 +2,7 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* 스크롤 방지 */
+  overflow-x: hidden; /* 가로 스크롤만 방지 */
 }
 #__next { /* Next.js 앱이 렌더링되는 루트 div */
   height: 100%;

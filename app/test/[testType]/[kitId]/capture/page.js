@@ -187,8 +187,12 @@ export default function CapturePage() {
       const context = canvas.getContext('2d');
       context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
       
-      const imageDataUrl = canvas.toDataURL('image/png');
-      // const imageDataUrl = "/images/dope-test1.jpg" // 테스트용
+      let imageDataUrl = "";
+      if (process.env.NODE_ENV === 'Production') {
+        imageDataUrl = canvas.toDataURL('image/png'); // 배포 시
+      } else {
+        imageDataUrl = "/images/dope-test1.jpg"; // 테스트 시
+      }
       
       const resizedImageData = await resizeImage(imageDataUrl);
 

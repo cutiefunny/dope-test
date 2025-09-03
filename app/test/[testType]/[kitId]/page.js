@@ -51,7 +51,7 @@ export default function TestKitDetailPage() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <button onClick={() => router.back()} className={commonStyles.backButton}>{backIcon()}</button>
+        <button onClick={() => router.push(`/test/${testType}`)} className={commonStyles.backButton}>{backIcon()}</button>
         <span className={styles.headerTitle}>{pageTitle}</span>
       </div>
 

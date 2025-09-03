@@ -43,6 +43,7 @@
   padding: 1.5rem 1rem;
   background-color: #ffffff;
   position: relative;
+  padding-bottom: 7rem; /* 하단 고정 버튼을 위한 여백 추가 */
 }
 
 .pageSubtitle {
@@ -183,10 +184,26 @@
 .verificationConfirmButton:hover { background-color: #5a6268; }
 .successMessage { color: #007bff; font-size: 0.875rem; margin-top: 0.5rem; text-align: left; }
 .errorMessage { color: #dc3545; font-size: 0.875rem; margin-top: 0.5rem; text-align: left; }
-.bottomButton { width: calc(100% - 2rem); padding: 1rem 0; background-color: #2DA3E3; color: #ffffff; border: none; border-radius: 0.5rem; font-size: 1.125rem; font-weight: 600; cursor: pointer; position: absolute; bottom: 1.5rem; left: 1rem; right: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+.bottomButton {
+  width: calc(100% - 2rem);
+  padding: 1rem 0;
+  background-color: #2DA3E3;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  position: fixed; /* 화면 하단에 고정 */
+  bottom: 1.5rem;
+  left: 1rem;
+  right: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
 .bottomButton.disabledButton { background-color: #E2E3E4; color: #6c757d; cursor: not-allowed; }
 .modalOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .modalContent { background-color: #ffffff; border-radius: 0.75rem; padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); max-width: 300px; width: 90%; }
 .modalMessage { font-size: 1.125rem; font-weight: 500; color: #1f2937; margin-bottom: 1.5rem; text-align: center; }
 .modalButton { padding: 0.75rem 2rem; background-color: #2DA3E3; color: #ffffff; border: none; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; }
 .modalButton:hover { background-color: #0056b3; }
+

@@ -126,6 +126,10 @@ export default function ResultPage() {
     router.push('/home');
   };
 
+  const handleExitToKitPage = () => {
+    router.push(`/test/${testType}/${kitId}`);
+  };
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -163,6 +167,9 @@ export default function ResultPage() {
             <p className={styles.retakeChancesText}>재촬영 기회 {retakeChances}번</p>
             <button onClick={handleRetakeClick} className={styles.retakeButton}>
               재촬영
+            </button>
+            <button onClick={handleExitToKitPage} className={styles.exitButton}>
+              나가기
             </button>
           </>
         ) : (

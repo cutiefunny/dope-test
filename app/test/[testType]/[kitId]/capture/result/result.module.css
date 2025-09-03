@@ -126,6 +126,24 @@
   cursor: not-allowed;
 }
 
+.exitButton {
+  width: 100%;
+  max-width: 400px; /* 버튼 최대 너비 */
+  border: none;
+  border-radius: 0.5rem;
+  padding: 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #2DA3E3;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+/* .exitButton:hover {
+  background-color: #5a6268;
+} */
+
 .modalOverlay {
   position: fixed;
   top: 0;
